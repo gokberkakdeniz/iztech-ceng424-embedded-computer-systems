@@ -26,6 +26,11 @@ function buildHtml(src) {
     .pipe(gulpIf(isProduction, htmlmin({ collapseWhitespace: true, html5: true, })));
 }
 
+function buildJs(src) {
+  return gulp.src(src)
+    .pipe(gulpIf(isProduction, uglifyEs()));
+}
+
 gulp.task("build:css", function () {
   return buildCss("src/*.css")
     .pipe(gulp.dest("../data"));
@@ -37,8 +42,7 @@ gulp.task("build:html", function () {
 });
 
 gulp.task("build:js", function () {
-  return buildHtml("src/*.js")
-    .pipe(gulpIf(isProduction, uglifyEs()))
+  return buildJs("src/*.js")
     .pipe(gulp.dest("../data"));
 });
 
@@ -76,6 +80,7 @@ gulp.task("start", async function () {
     gulp.parallel(
       withName("build:html@mem", () => buildHtml("src/*.html").pipe(mfs.dest())),
       withName("build:css@mem", () => buildCss("src/*.css").pipe(mfs.dest())),
+      withName("build:js@mem", () => buildJs("src/*.js").pipe(mfs.dest())),
     ),
     gulp.parallel(watch, serve)
   )();
