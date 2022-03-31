@@ -5,7 +5,10 @@ const MemoryFs = require("gulp-memory-fs");
 const log = require("fancy-log");
 const gulpIf = require("gulp-if");
 const replace = require("gulp-replace");
+const uglifyEs = require("gulp-uglify-es").default;
 const G = require('generatorics');
+
+const isProduction = process.env.NODE_ENV === "production";
 
 function withName(name, fn) {
   fn.displayName = name;
@@ -20,10 +23,7 @@ function buildCss(src) {
 
 function buildHtml(src) {
   return gulp.src(src)
-    .pipe(gulpIf(
-      process.env.NODE_ENV === "production",
-      htmlmin({ collapseWhitespace: true, html5: true, }))
-    );
+    .pipe(gulpIf(isProduction, htmlmin({ collapseWhitespace: true, html5: true, })));
 }
 
 gulp.task("build:css", function () {
@@ -36,7 +36,12 @@ gulp.task("build:html", function () {
     .pipe(gulp.dest("../data"));
 });
 
-gulp.task("build", gulp.parallel("build:css", "build:html"));
+gulp.task("build:js", function () {
+  return buildHtml("src/*.js")
+    .pipe(gulpIf(isProduction, uglifyEs()))
+    .pipe(gulp.dest("../data"));
+});
+
 
 gulp.task("start", async function () {
   const mfs = new MemoryFs({
@@ -108,3 +113,10 @@ gulp.task("compress:classnames", async function () {
     ),
   )();
 });
+
+gulp.task("build", gulp.series(
+  gulp.parallel("build:css", "build:html", "build:js"),
+  ...[
+    isProduction && "compress:classnames",
+  ].filter(Boolean)
+));
