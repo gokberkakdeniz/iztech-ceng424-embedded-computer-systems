@@ -6,27 +6,32 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="index.css">
+  <script src="index.js"></script>
   <title>WiFi | Zort Systems</title>
 </head>
 
 <body class="w-screen h-screen bg-gray-800 text-neutral-300">
   <div class="flex flex-col mx-auto max-w-md h-full mt-20">
-    <header class="bg-slate-700 rounded text-center py-1 mb-4">
-      Z31 Admin Panel - WiFi
+    <header class="flex justify-between bg-slate-700 rounded text-center py-1 mb-4 px-2">
+      <a class="flex-1" href="/">Z31 Admin Panel - WiFi</a>
+      <button id="logout" class="text-right">Logout</button>
     </header>
     <main class="p-2 bg-slate-700 rounded">
-      <form action="/" method="POST">
+      <form action="/wifi" method="POST">
         <label for="ssid">SSID:</label><br>
-        <input type="text" id="ssid" name="ssid" value="%ssid%"
+        <input type="text" id="ssid" name="ssid" value="%wifi_ssid%"
           class="border border-black rounded bg-gray-800 w-full px-1 py-1 mt-2 mb-2 outline-none"><br>
         <label for="password">Password:</label><br>
-        <input type="text" id="password" name="password" value="%password%"
+        <input type="text" id="password" name="password" value="%wifi_password%"
           class="border border-black rounded bg-gray-800 w-full px-1 py-1 mt-1 mb-2 outline-none"><br>
         <label for="ip">IP Address:</label><br>
-        <input type="text" id="ip" name="ip" value="%ip%"
+        <input type="text" id="ip" name="ip" value="%wifi_ip%"
           class="border border-black rounded bg-gray-800 w-full px-1 py-1 mt-2 mb-2 outline-none"><br>
         <label for="gateway">Gateway Address:</label><br>
-        <input type="text" id="gateway" name="gateway" value="%gateway%"
+        <input type="text" id="gateway" name="gateway" value="%wifi_gateway%"
+          class="border border-black rounded bg-gray-800 w-full px-1 py-1 mt-2 mb-2 outline-none"><br>
+        <label for="subnet">Subnet:</label><br>
+        <input type="text" id="subnet" name="subnet" value="%wifi_subnet%"
           class="border border-black rounded bg-gray-800 w-full px-1 py-1 mt-2 mb-2 outline-none"><br>
         <div class="text-right">
           <input type="submit" value="Save" class="border border-black rounded bg-gray-800 py-0.5 px-2 outline-none">

@@ -7,23 +7,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="index.css">
   <script src="index.js"></script>
-  <title>Account | Zort Systems</title>
+  <title>Access Point | Zort Systems</title>
 </head>
 
 <body class="w-screen h-screen bg-gray-800 text-neutral-300">
   <div class="flex flex-col mx-auto max-w-md h-full mt-20">
     <header class="flex justify-between bg-slate-700 rounded text-center py-1 mb-4 px-2">
-      <a class="flex-1" href="/">Z31 Admin Panel - Account</a>
+      <a class="flex-1" href="/">Z31 Admin Panel - Access Point</a>
       <button id="logout" class="text-right">Logout</button>
     </header>
     <main class="p-2 bg-slate-700 rounded">
-      <form action="/account" method="POST">
-        <label for="username">Username:</label><br>
-        <input type="text" id="username" name="username" value="%username%"
+      <form action="/ap" method="POST">
+        <label for="ssid">SSID:</label><br>
+        <input type="text" id="ssid" name="ssid" value="%ap_ssid%"
           class="border border-black rounded bg-gray-800 w-full px-1 py-1 mt-2 mb-2 outline-none"><br>
         <label for="password">Password:</label><br>
-        <input type="text" id="password" name="password" value="%password%"
+        <input type="text" id="password" name="password" value="%ap_password%"
           class="border border-black rounded bg-gray-800 w-full px-1 py-1 mt-1 mb-2 outline-none"><br>
+        <label for="ip">IP Address:</label><br>
+        <input type="text" id="ip" name="ip" value="%ap_ip%"
+          class="border border-black rounded bg-gray-800 w-full px-1 py-1 mt-2 mb-2 outline-none"><br>
+        <label for="gateway">Gateway Address:</label><br>
+        <input type="text" id="gateway" name="gateway" value="%ap_gateway%"
+          class="border border-black rounded bg-gray-800 w-full px-1 py-1 mt-2 mb-2 outline-none"><br>
+        <label for="subnet">Subnet:</label><br>
+        <input type="text" id="subnet" name="subnet" value="%ap_subnet%"
+          class="border border-black rounded bg-gray-800 w-full px-1 py-1 mt-2 mb-2 outline-none"><br>
         <div class="text-right">
           <input type="submit" value="Save" class="border border-black rounded bg-gray-800 py-0.5 px-2 outline-none">
         </div>
