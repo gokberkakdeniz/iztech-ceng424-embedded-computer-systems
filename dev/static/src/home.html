@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="index.css">
   <script src="index.js"></script>
+  <script src="home.js"></script>
   <title>Login | Zort Systems</title>
 </head>
 
@@ -17,9 +18,15 @@
       <button id="logout" class="text-right">Logout</button>
     </header>
     <main class="p-2 flex flex-col justify-items-stretch text-center bg-slate-700 rounded">
+      <section id="message" class="bg-yellow-500 text-black font-bold rounded mb-4 py-1" style="display:none;">
+      </section>
       <a href="/account" class="py-2 my-1 border border-transparent rounded bg-gray-800">ACCOUNT</a>
       <a href="/wifi" class="py-2 my-1 border border-transparent rounded bg-gray-800">WiFi</a>
       <a href="/ap" class="py-2 my-1 border border-transparent rounded bg-gray-800">ACCESS POINT</a>
+      <a href="/reset" 
+        class="py-2 my-1 border border-transparent rounded bg-gray-800"
+        onclick="javascript:!confirm('Are you sure?') && event.preventDefault();"
+      >RESET</a>
     </main>
     <footer class="bg-slate-700 rounded text-center py-1 mt-4">
       Copyright (C) 2022 Zort Systems

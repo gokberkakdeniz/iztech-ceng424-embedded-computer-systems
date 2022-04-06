@@ -1,1 +1,1 @@
-window.onload=()=>{const o=document.getElementById("logout");o&&(o.onclick=()=>{document.cookie="SESSIONID=;",window.location.href="/"})};
+window.addEventListener("load",(()=>{const o=document.getElementById("logout");o&&(o.onclick=()=>{document.cookie="SESSIONID=;",window.location.href="/"})}));

@@ -1,4 +1,4 @@
-window.onload = () => {
+window.addEventListener("load", () => {
   const logout = document.getElementById("logout");
   if (logout) {
     logout.onclick = () => {
@@ -6,4 +6,4 @@ window.onload = () => {
       window.location.href = "/";
     }
   }
-}
+});

@@ -1,0 +1,1 @@
+function showMessage(e){const s=document.getElementById("message");s.textContent=e,s.style.display="block"}window.addEventListener("load",(()=>{const e=new URLSearchParams(window.location.search);if(e.has("cb")&&"reset"===e.get("cb"))showMessage("Resetting...")}));
