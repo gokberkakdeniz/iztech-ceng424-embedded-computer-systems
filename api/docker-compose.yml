@@ -24,5 +24,6 @@ services:
     - "5432:5432"
     volumes:
     - ./timescaledb:/var/lib/postgresql/data 
-
+    environment:
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
 version: '3'
