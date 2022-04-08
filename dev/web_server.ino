@@ -37,8 +37,12 @@ WebServer::WebServer(): server(80), username("root"), password("123456"), sessio
   });
 
   this->server.on("/reset", HTTP_GET, [this, &processor](AsyncWebServerRequest * request) {
-      this->shouldReset = true;
-      request->redirect("/?action=reset");
+    if (this->isLogged(request)) {
+      *this->shouldReset = true;
+      request->redirect("/?cb=reset");
+    } else {
+      request->redirect("/");
+    }
   });
 
   this->server.on("/", HTTP_GET, [this, &processor](AsyncWebServerRequest * request) {

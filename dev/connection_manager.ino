@@ -57,11 +57,6 @@ bool ConnectionManager::save() {
     return false;
   }
 
-  Serial.printf("%s\n%s\n%s\n%s\n%s\n", this->ssid.c_str(),
-                this->password.c_str(), this->local_ip.toString().c_str(),
-                this->gateway.toString().c_str(),
-                this->subnet.toString().c_str());
-
   file.printf("%s\n%s\n%s\n%s\n%s\n", this->ssid.c_str(),
               this->password.c_str(), this->local_ip.toString().c_str(),
               this->gateway.toString().c_str(),
