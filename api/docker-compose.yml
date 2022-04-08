@@ -13,4 +13,16 @@ services:
     - ./mosquitto/data:/mosquitto/data
     - ./mosquitto/log:/mosquitto/log
     - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+  db:
+    container_name: db
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: timescale/timescaledb:latest-pg14
+    ports:
+    - "5432:5432"
+    volumes:
+    - ./timescaledb:/var/lib/postgresql/data 
+
 version: '3'
