@@ -5,7 +5,7 @@ services:
       replicas: 1
       restart_policy:
         condition: any
-    image: eclipse-mosquitto
+    image: iegomez/mosquitto-go-auth
     ports:
     - "1883:1883"
     - "9001:9001"
