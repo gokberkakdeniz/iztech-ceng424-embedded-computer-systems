@@ -1,1 +1,8 @@
-{}
+{
+  "eslint.workingDirectories": [
+    "./api"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  }
+}

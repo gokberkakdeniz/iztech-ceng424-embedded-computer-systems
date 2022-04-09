@@ -1,2 +1,4 @@
 .env
 timescaledb/
+node_modules/
+.next
