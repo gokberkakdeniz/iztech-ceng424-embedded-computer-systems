@@ -3,7 +3,7 @@ listener 1883 0.0.0.0
 auth_plugin /mosquitto/go-auth.so
 
 auth_opt_log_level debug
-auth_opt_backends files
+auth_opt_backends postgres
 auth_opt_check_prefix false
 
 auth_opt_hasher bcrypt
