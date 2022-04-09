@@ -12,7 +12,7 @@ services:
     volumes:
     - ./mosquitto/data:/mosquitto/data
     - ./mosquitto/log:/mosquitto/log
-    - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    - ./mosquitto/config/mosquitto.conf:/etc/mosquitto/mosquitto.conf
   db:
     container_name: db
     deploy:
