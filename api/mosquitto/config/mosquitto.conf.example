@@ -9,6 +9,7 @@ auth_opt_check_prefix false
 auth_opt_hasher bcrypt
 auth_opt_hasher_cost 10
 
+auth_opt_pg_host db
 auth_opt_pg_connect_tries 5
 auth_opt_pg_user ceng424_admin
 auth_opt_pg_password #password_here
