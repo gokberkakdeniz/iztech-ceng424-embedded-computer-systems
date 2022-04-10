@@ -3,5 +3,6 @@
 ## Instructions
 
 - mkdir timescaledb
-- copy and edit .env.example
+- cp .env.example .env
+  - and edit
 - docker-compose up
