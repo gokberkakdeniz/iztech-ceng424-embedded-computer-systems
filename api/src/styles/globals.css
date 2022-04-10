@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  @apply h-screen w-screen text-neutral-100;
+}
+
+body div {
+  @apply h-full w-full;
+}

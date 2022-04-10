@@ -1,10 +1,14 @@
 import Link from "next/link";
+import Button from "../components/button";
+import { PrivateWrapper } from "../containers/wrappers";
 
 function HomePage() {
   return (
-    <div className="bg-red-200">
-      home - <Link href="/about">about</Link>
-    </div>
+    <PrivateWrapper>
+      <Button>
+        <Link href="/about">about</Link>
+      </Button>
+    </PrivateWrapper>
   );
 }
 

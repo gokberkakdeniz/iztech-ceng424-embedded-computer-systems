@@ -35,4 +35,23 @@ module.exports = {
       user.password,
     ]);
   },
+  // Device
+  getDevices: function () {
+    return this.queryAll("SELECT * FROM devices");
+  },
+  getDevicesByOwnerId: function (id) {
+    return this.queryAll("SELECT * FROM devices WHERE owner_id = $1", [id]);
+  },
+  getDeviceById: function (id) {
+    return this.queryOne("SELECT * FROM devices WHERE id = $1", [id]);
+  },
+  deleteDeviceById: function (id) {
+    return this.queryOne("DELETE devices WHERE id = $1 RETURNING *", [id]);
+  },
+  createDevice: function (device) {
+    return this.queryOne(
+      "INSERT INTO devices VALUES ($1, $2, $3) RETURNING *",
+      [device.username, device.password, device.owner_id],
+    );
+  },
 };

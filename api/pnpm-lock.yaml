@@ -4,6 +4,7 @@ specifiers:
   autoprefixer: ^10.4.4
   bcrypt: ^5.0.1
   body-parser: ^1.20.0
+  clsx: ^1.1.1
   dotenv: ^16.0.0
   eslint: ^8.13.0
   eslint-config-next: ^12.1.4
@@ -28,6 +29,7 @@ specifiers:
 dependencies:
   bcrypt: 5.0.1
   body-parser: 1.20.0
+  clsx: 1.1.1
   dotenv: 16.0.0
   express: 4.17.3
   iron-session: 6.1.2_express@4.17.3+next@12.1.4
@@ -774,6 +776,11 @@ packages:
   /chownr/2.0.0:
     resolution: {integrity: sha512-bIomtDF5KGpdogkLd9VspvFzk9KfpyyGlS8YFVZl7TGPBHL5snIOnxeshwVgPteQ9b4Eydl+pVbIyE1DcvCWgQ==}
     engines: {node: '>=10'}
+    dev: false
+
+  /clsx/1.1.1:
+    resolution: {integrity: sha512-6/bPho624p3S2pMyvP5kKBPXnI3ufHLObBFCfgx+LkeR5lg2XYy2hqZqUf45ypD8COn2bhgGJSUE+l5dhNBieA==}
+    engines: {node: '>=6'}
     dev: false
 
   /color-convert/1.9.3:

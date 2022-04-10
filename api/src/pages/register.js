@@ -1,7 +1,9 @@
-//import Link from "next/link";
 import { useCallback } from "react";
 import useUser from "../lib/useUser";
 import fetchJson, { FetchError } from "../lib/fetchJson";
+import { PublicWrapper } from "../containers/wrappers";
+import Input from "../components/input";
+import Button from "../components/button";
 
 function RegisterForm() {
   const { mutateUser } = useUser({
@@ -38,41 +40,44 @@ function RegisterForm() {
   );
 
   return (
-    <form className="" onSubmit={handleSubmit}>
-      <h1>Register</h1>
-      <p>Please fill in this form to create an account.</p>
-      <br />
+    <PublicWrapper>
+      <form className="text-center" onSubmit={handleSubmit}>
+        <h1 className="font-bold">Register</h1>
+        <p>Please fill in this form to create an account.</p>
+        <br />
 
-      <label htmlFor="email">
-        <b>Email</b>
-      </label>
-      <br />
+        <label htmlFor="email">
+          <b>Email</b>
+        </label>
+        <br />
 
-      <input
-        type="text"
-        placeholder="Enter Email"
-        name="email"
-        id="email"
-        required
-      />
+        <Input
+          type="text"
+          placeholder="Enter Email"
+          name="email"
+          id="email"
+          required
+        />
+        <br />
 
-      <label htmlFor="password">
-        <b>Password</b>
-      </label>
-      <br />
-      <input
-        type="password"
-        placeholder="Enter Password"
-        name="password"
-        id="password"
-        required
-      />
-      <br />
+        <label htmlFor="password">
+          <b>Password</b>
+        </label>
+        <br />
+        <Input
+          type="password"
+          placeholder="Enter Password"
+          name="password"
+          id="password"
+          required
+        />
+        <br />
 
-      <button type="submit" className="registerbtn">
-        Register
-      </button>
-    </form>
+        <Button type="submit" className="registerbtn">
+          Register
+        </Button>
+      </form>
+    </PublicWrapper>
   );
 }
 

@@ -1,8 +1,9 @@
 import "../styles/globals.css";
 import { SWRConfig } from "swr";
 import fetchJson from "../lib/fetchJson";
+import Layout from "../containers/layout";
 
-function MyApp({ Component, pageProps }) {
+function ApplicationRoot({ Component, pageProps }) {
   return (
     <SWRConfig
       value={{
@@ -12,9 +13,11 @@ function MyApp({ Component, pageProps }) {
         },
       }}
     >
-      <Component {...pageProps} />
+      <Layout>
+        <Component {...pageProps} />
+      </Layout>
     </SWRConfig>
   );
 }
 
-export default MyApp;
+export default ApplicationRoot;

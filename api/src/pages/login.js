@@ -1,11 +1,7 @@
-import Link from "next/link";
+import { PublicWrapper } from "../containers/wrappers";
 
 function Login() {
-  return (
-    <div className="bg-red-400">
-      login - <Link href="/">home</Link>
-    </div>
-  );
+  return <PublicWrapper>ss</PublicWrapper>;
 }
 
 export default Login;
