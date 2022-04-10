@@ -16,7 +16,7 @@ app.prepare().then(() => {
   // add custom path here
   // server.post('/request/custom', custom);
 
-  server.get("*", (req, res) => {
+  server.all("*", (req, res) => {
     return handle(req, res);
   });
 
