@@ -19,7 +19,7 @@ export default withIronSessionApiRoute(async function registerRoute(req, res) {
     const [err, body] = ss.validate(req.body, RegisterBody);
 
     if (err) {
-      res.send({ error: true, message: err.message });
+      res.status(500).send({ error: true, message: err.message });
     } else {
       body.id = uuid.v4();
       body.password = await bcrypt.hash(body.password, saltRound);
@@ -31,19 +31,21 @@ export default withIronSessionApiRoute(async function registerRoute(req, res) {
             'duplicate key value violates unique constraint "users_email_key"',
           )
         ) {
-          res.send({ error: true, message: "user already registered." });
+          res
+            .status(403)
+            .send({ error: true, message: "user already registered." });
         } else {
           console.log(err);
-          res.send({ error: true, message: "unknown error." });
+          res.status(500).send({ error: true, message: "unknown error." });
         }
       } else {
         delete user.password;
         req.session.user = user;
         await req.session.save();
-        res.send({ error: false, data: user });
+        res.status(200).send({ error: false, data: user });
       }
     }
   } else {
-    res.send({ error: true, message: "method not allowed." });
+    res.status(405).send({ error: true, message: "method not allowed." });
   }
 }, sessionOptions);

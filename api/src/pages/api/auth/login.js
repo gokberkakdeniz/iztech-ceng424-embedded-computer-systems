@@ -15,7 +15,7 @@ export default withIronSessionApiRoute(async function loginRoute(req, res) {
     const [err, body] = ss.validate(req.body, LoginBody);
 
     if (err) {
-      res.send({ error: true, message: err.message });
+      res.status(500).send({ error: true, message: err.message });
     } else {
       const [user, err] = await db.getUserByEmail(body.email);
 
@@ -30,14 +30,14 @@ export default withIronSessionApiRoute(async function loginRoute(req, res) {
       delete user.password;
 
       if (!isOk) {
-        res.send({ error: true, message: "invalid crediantials." });
+        res.status(401).send({ error: true, message: "invalid crediantials." });
       } else {
         req.session.user = user;
         await req.session.save();
-        res.send({ error: false, data: user });
+        res.status(200).send({ error: false, data: user });
       }
     }
   } else {
-    res.send({ error: true, message: "method not allowed." });
+    res.status(405).send({ error: true, message: "method not allowed." });
   }
 }, sessionOptions);

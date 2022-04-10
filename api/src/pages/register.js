@@ -1,14 +1,52 @@
 //import Link from "next/link";
+import { useCallback } from "react";
+import useUser from "../lib/useUser";
+import fetchJson, { FetchError } from "../lib/fetchJson";
+
 function RegisterForm() {
+  const { mutateUser } = useUser({
+    redirectTo: "/about",
+    redirectIfFound: true,
+  });
+
+  const handleSubmit = useCallback(
+    async (event) => {
+      event.preventDefault();
+
+      const body = {
+        email: event.currentTarget.email.value,
+        password: event.currentTarget.password.value,
+      };
+
+      try {
+        mutateUser(
+          await fetchJson("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          }),
+        );
+      } catch (error) {
+        if (error instanceof FetchError) {
+          console.log(error.data.message);
+        } else {
+          console.error("An unexpected error happened:", error);
+        }
+      }
+    },
+    [mutateUser],
+  );
+
   return (
-    <div className="container">
+    <form className="" onSubmit={handleSubmit}>
       <h1>Register</h1>
       <p>Please fill in this form to create an account.</p>
       <br />
+
       <label htmlFor="email">
         <b>Email</b>
-        <br />
       </label>
+      <br />
 
       <input
         type="text"
@@ -18,36 +56,23 @@ function RegisterForm() {
         required
       />
 
-      <label htmlFor="psw">
-        <br />
+      <label htmlFor="password">
         <b>Password</b>
       </label>
       <br />
       <input
         type="password"
         placeholder="Enter Password"
-        name="psw"
-        id="psw"
+        name="password"
+        id="password"
         required
       />
       <br />
 
-      <label htmlFor="psw-repeat">
-        <b>Repeat Password</b>
-        <br />
-      </label>
-      <input
-        type="password"
-        placeholder="Repeat Password"
-        name="psw-repeat"
-        id="psw-repeat"
-        required
-      />
-
       <button type="submit" className="registerbtn">
         Register
       </button>
-    </div>
+    </form>
   );
 }
 
