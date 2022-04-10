@@ -1,11 +1,11 @@
 import Link from "next/link";
 
-function AboutPage() {
+function Login() {
   return (
     <div className="bg-red-400">
-      about - <Link href="/">home</Link>
+      login - <Link href="/">home</Link>
     </div>
   );
 }
 
-export default AboutPage;
+export default Login;

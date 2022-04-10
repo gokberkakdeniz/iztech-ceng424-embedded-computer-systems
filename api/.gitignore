@@ -3,3 +3,4 @@ timescaledb/
 node_modules/
 .next
 mosquitto/config/mosquitto.conf
+.pnpm-debug.log

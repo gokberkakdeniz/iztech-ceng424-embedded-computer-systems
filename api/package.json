@@ -16,9 +16,15 @@
     "body-parser": "^1.20.0",
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
+    "iron-session": "^6.1.2",
+    "is-email": "^1.0.2",
+    "is-uuid": "^1.0.2",
     "next": "^12.1.4",
     "react": "^18.0.0-0",
-    "react-dom": "^18.0.0-0"
+    "react-dom": "^18.0.0-0",
+    "superstruct": "^0.15.4",
+    "swr": "^1.2.2",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.4",
