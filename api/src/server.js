@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const next = require("next");
 const bodyParser = require("body-parser");
+const mqtt = require("mqtt");
 
 const dev = process.env.NODE_ENV !== "production";
 const port = dev ? process.env.PORT : 80;
@@ -24,4 +25,20 @@ app.prepare().then(() => {
     if (err) throw err;
     console.log("Ready on http://localhost:" + port);
   });
+});
+
+const client = mqtt.connect(
+  `mqtt://${process.env.MQTT_HOST}:${process.env.MQTT_PORT}`,
+  {
+    username: process.env.MQTT_USERNAME,
+    password: process.env.MQTT_PASSWORD,
+  },
+);
+
+client.on("connect", function () {
+  client.subscribe("#");
+});
+
+client.on("message", function (topic, message) {
+  console.log("message -", topic, message.toString());
 });
