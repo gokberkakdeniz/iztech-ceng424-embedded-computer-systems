@@ -7,7 +7,7 @@ bool WifiManager::init() {
 
   WiFi.mode(WIFI_STA);
 
-  if (!WiFi.config(this->local_ip, this->gateway, this->subnet)) {
+  if (!WiFi.config(this->local_ip, this->gateway, this->subnet, IPAddress(8,8,8,8), IPAddress(8,8,4,4))) {
     return false;
   }
 

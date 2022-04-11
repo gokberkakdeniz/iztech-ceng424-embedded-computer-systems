@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include "LittleFS.h"
+#include <ESP8266WiFi.h>
 
 class MQTTManager {
   private:
@@ -13,6 +14,7 @@ class MQTTManager {
     int port;
     String username;
     String password;
+    char clientId[9];
     PubSubClient mqttClient;
 
     MQTTManager();
@@ -23,6 +25,9 @@ class MQTTManager {
 
     bool init();
     bool loop();
+
+    void publish(const char* topic, const char *msg);
+    void publish(char* topic, double value);
 };
 
 #endif

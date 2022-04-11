@@ -49,7 +49,7 @@ bool MQTTManager::save() {
 
   file.close();
 
-  Serial.println("MQTTManager@load :: success");
+  Serial.println("MQTTManager@save :: success");
 
   return true;
 }
@@ -65,20 +65,39 @@ void MQTTManager::callback(char* topic, byte* payload, unsigned int length) {
 }
 
 bool MQTTManager::init() {
+  IPAddress resolvedIP;
+  if (!WiFi.hostByName(this->address.c_str(), resolvedIP)) {
+    Serial.println("MQTTManager@init :: address could not resolved");
+    return false;
+  }
+
+  snprintf(this->clientId, 9, "%08X", ESP.getChipId());
+  Serial.printf("MQTTManager::init :: clientId=%s\n", this->clientId);
+
   this->mqttClient.setClient(this->wifiClient);
   this->mqttClient.setCallback(std::bind(&MQTTManager::callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-  this->mqttClient.setServer(this->address.c_str(), this->port);
+  this->mqttClient.setServer(resolvedIP, this->port);
   return true;
 }
 
 bool MQTTManager::loop() {
   bool isConnected = this->mqttClient.connected();
   if (!isConnected) {
-    isConnected = mqttClient.connect("client-adghasghd");
+    isConnected = mqttClient.connect(clientId, this->username.c_str(), this->password.c_str());
     Serial.printf("mqttInit :: %s\n", isConnected ? "success" : "failed");
   }
 
   this->mqttClient.loop();
 
   return isConnected;
+}
+
+void MQTTManager::publish(const char* topic, const char *msg) {
+  char topicWithClientId[100];
+  snprintf(topicWithClientId, 100, "%s/%s", this->clientId, topic);
+  this->mqttClient.publish(topicWithClientId, msg);
+}
+
+void MQTTManager::publish(char* topic, double value) {
+  this->publish(topic, String(value, 6).c_str());
 }
