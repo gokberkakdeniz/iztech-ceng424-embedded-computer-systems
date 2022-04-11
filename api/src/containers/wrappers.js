@@ -19,24 +19,38 @@ const LinksRight = [
   },
 ];
 
+function HeaderLink({ href, text, active = false, className = "" }) {
+  return (
+    <div
+      className={clsx(
+        "border-b border-transparent hover:border-yellow-400 hover:text-yellow-400",
+        active && "font-bold border-white",
+        className,
+      )}
+    >
+      <Link href={href}>{text}</Link>
+    </div>
+  );
+}
+
 export function PrivateWrapper({ children }) {
   const { pathname } = useRouter();
   useUser({ redirectTo: "/login", redirectIf: "notLogged" });
   return (
     <>
       <Header>
-        <Link href="/">Header</Link>
+        <div className="font-bold text-yellow-400">
+          <Link href="/">Header</Link>
+        </div>
+
         <Strech />
         {LinksRight.map(({ text, href }) => (
-          <div
+          <HeaderLink
             key={href}
-            className={clsx(
-              "border-b border-transparent hover:border-yellow-400 hover:text-yellow-400",
-              pathname === href && "font-bold border-white",
-            )}
-          >
-            <Link href={href}>{text}</Link>
-          </div>
+            href={href}
+            text={text}
+            active={pathname === href}
+          />
         ))}
         <UserMenu />
       </Header>
