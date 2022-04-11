@@ -40,7 +40,7 @@ module.exports = {
     return this.queryAll("SELECT * FROM devices");
   },
   getDevicesByOwnerId: function (id) {
-    return this.queryAll("SELECT * FROM devices WHERE owner_id = $1", [id]);
+    return this.queryAll(`SELECT * FROM devices WHERE owner_id = $1`, [id]);
   },
   getDeviceById: function (id) {
     return this.queryOne("SELECT * FROM devices WHERE id = $1", [id]);
