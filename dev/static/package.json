@@ -10,7 +10,7 @@
     "build:css:prod": "NODE_ENV=production gulp build:css",
     "build:html": "gulp build:html",
     "build:html:prod": "NODE_ENV=production gulp build:html",
-    "start": "gulp start",
+    "dev": "gulp start",
     "compress:classnames": "gulp compress:classnames"
   },
   "author": "",
