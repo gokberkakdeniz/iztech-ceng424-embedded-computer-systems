@@ -6,6 +6,6 @@ body {
   @apply h-screen w-screen text-neutral-100;
 }
 
-body div {
+#__next {
   @apply h-full w-full;
 }

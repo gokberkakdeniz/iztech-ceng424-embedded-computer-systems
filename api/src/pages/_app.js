@@ -8,9 +8,6 @@ function ApplicationRoot({ Component, pageProps }) {
     <SWRConfig
       value={{
         fetcher: fetchJson,
-        onError: (err) => {
-          console.error(err);
-        },
       }}
     >
       <Layout>

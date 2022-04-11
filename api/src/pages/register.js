@@ -7,8 +7,8 @@ import Button from "../components/button";
 
 function RegisterForm() {
   const { mutateUser } = useUser({
-    redirectTo: "/about",
-    redirectIfFound: true,
+    redirectTo: "/",
+    redirectIf: "logged",
   });
 
   const handleSubmit = useCallback(
