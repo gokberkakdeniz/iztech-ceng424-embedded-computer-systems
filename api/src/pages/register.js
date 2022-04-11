@@ -30,6 +30,7 @@ function RegisterForm() {
         );
       } catch (error) {
         if (error instanceof FetchError) {
+          // TODO(@ebkaraca): show this message in the UI.
           console.log(error.data.message);
         } else {
           console.error("An unexpected error happened:", error);
