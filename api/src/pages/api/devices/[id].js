@@ -1,15 +1,14 @@
 import { withIronSessionApiRoute } from "iron-session/next";
 import db from "../../../lib/db";
 import { sessionOptions } from "../../../lib/session";
-import isUuid from "is-uuid";
 
 async function editDevice(req, res) {
   res.send({ error: false, message: "OK editDevice" });
 }
 
 async function getDevice(req, res) {
-  if (!isUuid.v4(req.query.id)) {
-    return res.send({ error: true, message: "id must be uuid v4." });
+  if (req.query.id?.length !== 8) {
+    return res.send({ error: true, message: "id must have 8 characters." });
   }
 
   const [device, err] = await db.getDeviceById(req.query.id);
@@ -29,8 +28,8 @@ async function getDevice(req, res) {
 }
 
 async function deleteDevice(req, res) {
-  if (!isUuid.v4(req.query.id)) {
-    return res.send({ error: true, message: "id must be uuid v4." });
+  if (req.query.id?.length !== 8) {
+    return res.send({ error: true, message: "id must have 8 characters." });
   }
 
   const [device, err] = await db.getDevicesByOwnerId(req.session.user.id);
