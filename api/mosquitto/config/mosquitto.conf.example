@@ -15,3 +15,5 @@ auth_opt_pg_user ceng424_admin
 auth_opt_pg_password #password_here
 auth_opt_pg_dbname ceng424
 auth_opt_pg_userquery select password from "devices" where username = $1 limit 1
+auth_opt_pg_aclquery select topic from device_topics dt join devices d on d.id = dt.device_id where (d.username = $1) AND (dt.rw | $2) > 0
+auth_opt_pg_superquery select count(*) from "devices" where username = $1 and id in ('00000000')
