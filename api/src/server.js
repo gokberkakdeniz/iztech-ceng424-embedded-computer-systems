@@ -3,9 +3,10 @@ const express = require("express");
 const next = require("next");
 const bodyParser = require("body-parser");
 const mqtt = require("mqtt");
+const { actionRunner, ActionModel } = require("./lib/action");
 
 const dev = process.env.NODE_ENV !== "production";
-const port = dev ? process.env.PORT : 80;
+const port = dev ? process.env.PORT || 8001 : 80;
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
@@ -27,6 +28,26 @@ app.prepare().then(() => {
   });
 });
 
+actionRunner.register(
+  new ActionModel({
+    id: "1",
+    name: "dht",
+    device_id: "00A9F7DF",
+    condition: "dht > 1",
+    wait_for: 5,
+  }),
+);
+
+actionRunner.register(
+  new ActionModel({
+    id: "2",
+    name: "dht and temp",
+    device_id: "00A9F7DF",
+    condition: "dht > 1 and temp > 1",
+    wait_for: 5,
+  }),
+);
+
 const client = mqtt.connect(
   `mqtt://${process.env.MQTT_HOST}:${process.env.MQTT_PORT}`,
   {
@@ -40,5 +61,7 @@ client.on("connect", function () {
 });
 
 client.on("message", function (topic, message) {
-  console.log("message -", topic, message.toString());
+  const [deviceId, sensor] = topic.split("/");
+  actionRunner.update(deviceId, sensor, Number.parseFloat(message));
+  console.log(`[MQTT] ${topic}: ${message.toString()}`);
 });

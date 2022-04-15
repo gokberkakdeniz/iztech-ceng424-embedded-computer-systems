@@ -54,4 +54,33 @@ module.exports = {
       [device.username, device.password, device.owner_id],
     );
   },
+  // Actions
+  getActions: function () {
+    return this.queryAll("SELECT * FROM actions");
+  },
+  getActionsByDeviceId: function (deviceId) {
+    return this.queryAll("SELECT * FROM actions where device_id = $1", [
+      deviceId,
+    ]);
+  },
+  getActionById: function (id) {
+    return this.queryAll("SELECT * FROM actions where id = $1", [id]);
+  },
+  deleteActionById: function (id) {
+    return this.queryAll("DELETE actions where id = $1", [id]);
+  },
+  createAction: function (action) {
+    return this.queryAll(
+      "INSERT INTO actions VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+      [
+        action.id,
+        action.deviceId,
+        action.name,
+        action.type,
+        action.condition,
+        action.triggeredAt,
+        action.waitFor,
+      ],
+    );
+  },
 };
