@@ -1,9 +1,39 @@
 import { withIronSessionApiRoute } from "iron-session/next";
 import { sessionOptions } from "../../../../../lib/session";
 import db from "../../../../../lib/db";
+import * as ss from "superstruct";
+import * as uuid from "uuid";
+
+const ActionBody = ss.object({
+  name: ss.size(ss.string(), 1, 999),
+  condition: ss.size(ss.string(), 1, 999),
+  waitFor: ss.min(ss.number(), 0),
+  type: ss.enums(["telegram", "email", "power_on"]),
+});
 
 async function createAction(req, res) {
-  res.status(200).send({ error: false, message: "OK createAction" });
+  if (req.query.deviceId?.length !== 8) {
+    return res.send({ error: true, message: "id must have 8 characters." });
+  }
+
+  const [err, body] = ss.validate(req.body, ActionBody);
+
+  if (err) {
+    res.status(500).send({ error: true, message: err.message });
+  } else {
+    body.id = uuid.v4();
+    body.ownerId = req.session.user.id;
+    body.deviceId = req.query.deviceId;
+
+    const [action, err] = await db.createAction(body);
+
+    if (err) {
+      console.log(err);
+      return res.send({ error: true, message: "unknown error." });
+    }
+
+    res.status(200).send({ error: false, data: action });
+  }
 }
 
 async function getActions(req, res) {

@@ -2,6 +2,7 @@ lockfileVersion: 5.3
 
 specifiers:
   '@headlessui/react': ^1.5.0
+  '@heroicons/react': ^1.0.6
   autoprefixer: ^10.4.4
   bcrypt: ^5.0.1
   body-parser: ^1.20.0
@@ -31,6 +32,7 @@ specifiers:
 
 dependencies:
   '@headlessui/react': 1.5.0_react-dom@18.0.0+react@18.0.0
+  '@heroicons/react': 1.0.6_react@18.0.0
   bcrypt: 5.0.1
   body-parser: 1.20.0
   clsx: 1.1.1
@@ -161,6 +163,14 @@ packages:
     dependencies:
       react: 18.0.0
       react-dom: 18.0.0_react@18.0.0
+    dev: false
+
+  /@heroicons/react/1.0.6_react@18.0.0:
+    resolution: {integrity: sha512-JJCXydOFWMDpCP4q13iEplA503MQO3xLoZiKum+955ZCtHINWnx26CUxVxxFQu/uLb4LW3ge15ZpzIkXKkJ8oQ==}
+    peerDependencies:
+      react: '>= 16'
+    dependencies:
+      react: 18.0.0
     dev: false
 
   /@humanwhocodes/config-array/0.9.5:

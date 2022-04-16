@@ -12,14 +12,20 @@ async function getAction(req, res) {
     return res.send({ error: true, message: "id must be uuid v4." });
   }
 
-  const [action, err] = await db.getActionById(req.query.actionId);
+  const [action, actionErr] = await db.getActionById(req.query.actionId);
 
-  if (err) {
-    console.log(err);
+  if (actionErr) {
+    console.log(actionErr);
     return res.send({ error: true, message: "unknown error." });
   }
 
-  if (!action || action.owner_id != req.session.user.id) {
+  const [device, deviceErr] = await db.getDeviceById(action.device_id);
+  if (deviceErr) {
+    console.log(deviceErr);
+    return res.send({ error: true, message: "unknown error." });
+  }
+
+  if (!action || device.owner_id != req.session.user.id) {
     return res.send({ error: true, message: "not found" });
   }
 

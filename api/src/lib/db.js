@@ -64,13 +64,13 @@ module.exports = {
     ]);
   },
   getActionById: function (id) {
-    return this.queryAll("SELECT * FROM actions where id = $1", [id]);
+    return this.queryOne("SELECT * FROM actions where id = $1", [id]);
   },
   deleteActionById: function (id) {
-    return this.queryAll("DELETE actions where id = $1", [id]);
+    return this.queryOne("DELETE actions where id = $1", [id]);
   },
   createAction: function (action) {
-    return this.queryAll(
+    return this.queryOne(
       "INSERT INTO actions VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
       [
         action.id,
