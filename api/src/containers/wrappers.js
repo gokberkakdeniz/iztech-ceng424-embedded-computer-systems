@@ -54,7 +54,7 @@ export function PrivateWrapper({ children }) {
         ))}
         <UserMenu />
       </Header>
-      <Main className="bg-slate-600 ">{children}</Main>
+      <Main className="bg-slate-600">{children}</Main>
       <Footer>lorem ipsum footer...</Footer>
     </>
   );

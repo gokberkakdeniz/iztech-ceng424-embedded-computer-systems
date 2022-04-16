@@ -4,8 +4,8 @@ function Header({ className = "", children, ...rest }) {
   return (
     <header
       className={clsx(
-        "bg-gray-800 w-full h-12 px-4",
-        "text-bold",
+        "w-full h-12 px-4 flex-shrink-0",
+        "bg-gray-800 text-bold",
         "flex items-center gap-2",
         className,
       )}
