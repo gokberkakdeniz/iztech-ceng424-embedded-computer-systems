@@ -93,14 +93,32 @@ const createWebSocketServer = (server) => {
     noServer: true,
   });
 
-  wss.on("connection", function connection(ws, req, client) {
-    ws.on("message", function message(data) {
-      console.log(`Received message ${data} from user ${client}`);
+  wss.on("connection", function connection(ws, req) {
+    // TODO: check if deviceId belongs to the user
+
+    const params = new URLSearchParams(req.url.substring(4));
+    const deviceId = params.get("deviceId");
+
+    console.log(`[WS] subscribed to ${deviceId}`);
+
+    const callback = (name, value) => {
+      ws.send(JSON.stringify({ name, value }));
+    };
+
+    actionRunner.addUpdateListener(deviceId, callback);
+
+    ws.on("message", (data) => {
+      console.log(`[WS] message from  ${deviceId}: ${data}`);
+    });
+
+    ws.on("close", () => {
+      actionRunner.removeUpdateListener(deviceId, callback);
+      console.log(`[WS] unsubscribed #${deviceId}`);
     });
   });
 
   server.on("upgrade", async (req, socket, head) => {
-    if (req.url === "/ws") {
+    if (req.url.startsWith("/ws")) {
       const { [sessionOptions.cookieName]: sessionCookie = "" } = cookie.parse(
         req.headers.cookie || "",
       );
@@ -123,7 +141,7 @@ const createWebSocketServer = (server) => {
 
 next.prepare().then(async () => {
   const server = createServer();
-  createWebSocketServer(server);
+  const ws = createWebSocketServer(server);
 
   await loadActions();
   createMQTTClient();

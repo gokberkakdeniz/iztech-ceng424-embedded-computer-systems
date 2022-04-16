@@ -65,6 +65,9 @@ export class ActionRunner {
   constructor() {
     this.deviceActionTable = {};
     this.deviceValuesTable = {};
+    this.callbacks = {
+      update: {},
+    };
   }
 
   async init() {}
@@ -73,6 +76,7 @@ export class ActionRunner {
     if (!(actionModel.deviceId in this.deviceActionTable)) {
       this.deviceActionTable[actionModel.deviceId] = {};
       this.deviceValuesTable[actionModel.deviceId] = {};
+      this.callbacks.update[actionModel.deviceId] = [];
     }
 
     if (this.deviceActionTable[actionModel.deviceId][actionModel.id]) return;
@@ -102,12 +106,29 @@ export class ActionRunner {
 
     if (!actions || !values) return;
 
+    this.callbacks.update[deviceId].forEach((cb) =>
+      cb(sensorName, sensorValue),
+    );
+
     values[sensorName] = sensorValue;
 
     for (const action_id in actions) {
       const action = actions[action_id];
       action.trigger(values);
     }
+  }
+
+  addUpdateListener(deviceId, callback) {
+    this.callbacks.update[deviceId].push(callback);
+  }
+
+  removeUpdateListener(deviceId, callback) {
+    const index = this.callbacks.update[deviceId].findIndex(callback);
+    if (index !== -1) this.callbacks.update[deviceId].splice(index);
+  }
+
+  removeUpdateListeners(deviceId) {
+    this.callbacks.update[deviceId] = [];
   }
 }
 
