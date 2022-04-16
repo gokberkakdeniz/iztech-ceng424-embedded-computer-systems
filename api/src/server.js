@@ -141,7 +141,7 @@ const createWebSocketServer = (server) => {
 
 next.prepare().then(async () => {
   const server = createServer();
-  const ws = createWebSocketServer(server);
+  createWebSocketServer(server);
 
   await loadActions();
   createMQTTClient();

@@ -11,6 +11,7 @@
 
 #define DHTPIN D2
 #define DHTTYPE DHT11
+#define LDRPIN A0
 #define MSG_BUFFER_SIZE  (50)
 
 DHT dht(DHTPIN, DHTTYPE);
@@ -82,13 +83,18 @@ void sendDHTSensor() {
       mqttManager.publish("dht/heatIndex", hic);
     }
   }
-
 }
 
-void sendCounter() {
-  ++value;
-  mqttManager.publish("ping", value);
+void sendLDRSensor() {
+  int sensorValue = analogRead(LDRPIN);
+  float voltage = sensorValue * (5.0 / 1023.0);
+  mqttManager.publish("ldr/voltage", voltage);
 }
+
+//void sendCounter() {
+//  ++value;
+//  mqttManager.publish("counter", value);
+//}
 
 void loop() {  
   if (shouldReset) {
@@ -99,18 +105,13 @@ void loop() {
   bool isMQTTClientConnected = mqttManager.loop();
 
   if (isMQTTClientConnected) {
-    sendCounter();
+    // sendCounter();
     sendDHTSensor();
+    sendLDRSensor();
   }
-
-// Wait a few seconds between measurements.
-
 
 //  int sensorValue = analogRead(A0);   // read the input on analog pin 0
 //  Serial.println(sensorValue);
 
-//    float voltage = sensorValue * (5.0 / 1023.0);   // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 5V)
-//    Serial.println(voltage);
-
-  delay(2000);
+  delay(5000);
 }
