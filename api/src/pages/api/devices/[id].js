@@ -32,7 +32,7 @@ async function deleteDevice(req, res) {
     return res.send({ error: true, message: "id must have 8 characters." });
   }
 
-  const [device, err] = await db.getDevicesByOwnerId(req.session.user.id);
+  const [device, err] = await db.getDeviceById(req.query.id);
 
   if (err) {
     console.log(err);
@@ -55,7 +55,7 @@ async function deleteDevice(req, res) {
   res.send({ error: false, data: deletedDevice });
 }
 
-export default withIronSessionApiRoute(async function userRoute(req, res) {
+export default withIronSessionApiRoute(async function deviceRoute(req, res) {
   if (!req.session.user) {
     return res.send({ error: true, message: "unauthorized" });
   }

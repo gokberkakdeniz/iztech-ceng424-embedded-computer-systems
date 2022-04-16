@@ -22,7 +22,7 @@ async function getDevices(req, res) {
   res.send({ error: false, data: devices });
 }
 
-export default withIronSessionApiRoute(async function userRoute(req, res) {
+export default withIronSessionApiRoute(async function devicesRoute(req, res) {
   if (!req.session.user) {
     return res.send({ error: true, message: "unauthorized" });
   }
