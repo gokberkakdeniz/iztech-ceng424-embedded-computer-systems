@@ -14,8 +14,8 @@ const LinksRight = [
     text: "Devices",
   },
   {
-    href: "/actions",
-    text: "Actions",
+    href: "/about",
+    text: "About",
   },
 ];
 
