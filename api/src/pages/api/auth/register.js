@@ -1,5 +1,3 @@
-
-
 import bcrypt from "bcrypt";
 import * as uuid from "uuid";
 import * as ss from "superstruct";
@@ -48,4 +46,4 @@ export default async function registerRoute(req, res) {
   } else {
     res.status(405).send({ error: true, message: "method not allowed." });
   }
-};
+}

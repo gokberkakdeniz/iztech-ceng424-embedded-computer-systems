@@ -1,5 +1,3 @@
-
-import { sessionOptions } from "../../../../../lib/session";
 import db from "../../../../../lib/db";
 import * as ss from "superstruct";
 import * as uuid from "uuid";
@@ -80,4 +78,4 @@ export default async function actionsRoute(req, res) {
       res.send({ error: true, message: "method not allowed." });
       break;
   }
-};
+}

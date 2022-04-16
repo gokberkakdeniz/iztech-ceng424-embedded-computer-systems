@@ -1,5 +1,4 @@
 import db from "../../../../lib/db";
-import { sessionOptions } from "../../../../lib/session";
 
 async function editDevice(req, res) {
   res.send({ error: false, message: "OK editDevice" });

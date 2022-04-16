@@ -1,6 +1,4 @@
-
 import db from "../../../../../lib/db";
-import { sessionOptions } from "../../../../../lib/session";
 import * as isUuid from "is-uuid";
 
 async function editAction(req, res) {
@@ -77,4 +75,4 @@ export default async function deviceRoute(req, res) {
       res.send({ error: true, message: "method not allowed." });
       break;
   }
-};
+}

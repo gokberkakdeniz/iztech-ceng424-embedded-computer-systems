@@ -1,5 +1,3 @@
-
-
 import db from "../../../lib/db";
 
 async function createDevice(req, res) {
@@ -38,4 +36,4 @@ export default async function devicesRoute(req, res) {
       res.send({ error: true, message: "method not allowed." });
       break;
   }
-};
+}
