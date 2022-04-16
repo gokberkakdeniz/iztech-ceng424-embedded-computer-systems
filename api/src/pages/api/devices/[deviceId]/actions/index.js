@@ -1,4 +1,4 @@
-import { withIronSessionApiRoute } from "iron-session/next";
+
 import { sessionOptions } from "../../../../../lib/session";
 import db from "../../../../../lib/db";
 import * as ss from "superstruct";
@@ -64,7 +64,7 @@ async function getActions(req, res) {
   res.send({ error: false, data: actions });
 }
 
-export default withIronSessionApiRoute(async function actionsRoute(req, res) {
+export default async function actionsRoute(req, res) {
   if (!req.session.user) {
     return res.send({ error: true, message: "unauthorized" });
   }
@@ -80,4 +80,4 @@ export default withIronSessionApiRoute(async function actionsRoute(req, res) {
       res.send({ error: true, message: "method not allowed." });
       break;
   }
-}, sessionOptions);
+};

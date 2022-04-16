@@ -1,6 +1,6 @@
-const { Pool } = require("pg");
+import pg from "pg";
 
-const pool = new Pool({
+const pool = new pg.Pool({
   user: process.env.DB_USERNAME,
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
@@ -8,7 +8,7 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-module.exports = {
+export default {
   query: (text, params) => pool.query(text, params),
   // Helpers
   queryAll: (text, params) =>
@@ -80,6 +80,18 @@ module.exports = {
         action.condition,
         action.triggeredAt,
         action.waitFor,
+      ],
+    );
+  },
+  // SensorValues
+  createSensorValue: function (sensorValue) {
+    return this.queryOne(
+      "INSERT INTO sensor_values VALUES ($1, $2, $3, $4) RETURNING *",
+      [
+        sensorValue.deviceId,
+        sensorValue.time,
+        sensorValue.name,
+        sensorValue.value,
       ],
     );
   },

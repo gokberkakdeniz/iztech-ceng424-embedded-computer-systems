@@ -1,5 +1,5 @@
-import { withIronSessionApiRoute } from "iron-session/next";
-import { sessionOptions } from "../../../lib/session";
+
+
 import bcrypt from "bcrypt";
 import * as uuid from "uuid";
 import * as ss from "superstruct";
@@ -14,7 +14,7 @@ const RegisterBody = ss.object({
 
 const saltRound = Number.parseInt(process.env.BCRYPT_SALT_ROUNDS);
 
-export default withIronSessionApiRoute(async function registerRoute(req, res) {
+export default async function registerRoute(req, res) {
   if (req.method === "POST") {
     const [err, body] = ss.validate(req.body, RegisterBody);
 
@@ -48,4 +48,4 @@ export default withIronSessionApiRoute(async function registerRoute(req, res) {
   } else {
     res.status(405).send({ error: true, message: "method not allowed." });
   }
-}, sessionOptions);
+};

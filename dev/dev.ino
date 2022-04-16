@@ -100,7 +100,7 @@ void loop() {
 
   if (isMQTTClientConnected) {
     sendCounter();
-    // sendDHTSensor();
+    sendDHTSensor();
   }
 
 // Wait a few seconds between measurements.

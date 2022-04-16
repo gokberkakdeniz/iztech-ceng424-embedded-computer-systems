@@ -1,5 +1,5 @@
-import { withIronSessionApiRoute } from "iron-session/next";
-import { sessionOptions } from "../../../lib/session";
+
+
 import db from "../../../lib/db";
 
 async function createDevice(req, res) {
@@ -22,7 +22,7 @@ async function getDevices(req, res) {
   res.send({ error: false, data: devices });
 }
 
-export default withIronSessionApiRoute(async function devicesRoute(req, res) {
+export default async function devicesRoute(req, res) {
   if (!req.session.user) {
     return res.send({ error: true, message: "unauthorized" });
   }
@@ -38,4 +38,4 @@ export default withIronSessionApiRoute(async function devicesRoute(req, res) {
       res.send({ error: true, message: "method not allowed." });
       break;
   }
-}, sessionOptions);
+};

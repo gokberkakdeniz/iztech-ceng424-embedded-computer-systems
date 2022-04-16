@@ -1,6 +1,7 @@
-const { compileExpression } = require("filtrex");
+import { compileExpression } from "filtrex";
+import db from "./db.js";
 
-class ActionModel {
+export class ActionModel {
   constructor(raw) {
     this.id = raw.id;
     this.name = raw.id;
@@ -8,7 +9,7 @@ class ActionModel {
     this.deviceId = raw.device_id;
     this.triggeredAt = raw.triggered_at;
     this.condition = raw.condition;
-    this.waitFor = raw.wait_for;
+    this.waitFor = Number.parseFloat(raw.wait_for);
   }
 
   get condition() {
@@ -25,13 +26,26 @@ class ActionModel {
     this.nextRun.setSeconds(this.nextRun.getSeconds() + this.waitFor);
   }
 
-  trigger(values) {
+  async trigger(values) {
     if (this.evaluateCondition(values)) {
       const now = new Date();
 
       if (!this.triggeredAt || this.nextRun <= now) {
         this.triggeredAt = now;
         this.setNextRun();
+
+        const [, err] = await db.queryOne(
+          "UPDATE actions SET triggered_at = $1 WHERE id = $2",
+          [this.triggeredAt, this.id],
+        );
+
+        if (err) {
+          console.log(
+            "[ACTION]",
+            "Could not update triggered at of ",
+            this.dump(),
+          );
+        }
 
         console.log("[ACTION]", this.dump());
       }
@@ -47,7 +61,7 @@ class ActionModel {
   }
 }
 
-class ActionRunner {
+export class ActionRunner {
   constructor() {
     this.deviceActionTable = {};
     this.deviceValuesTable = {};
@@ -97,10 +111,4 @@ class ActionRunner {
   }
 }
 
-const actionRunner = new ActionRunner();
-
-module.exports = {
-  ActionModel,
-  ActionRunner,
-  actionRunner,
-};
+export const actionRunner = new ActionRunner();

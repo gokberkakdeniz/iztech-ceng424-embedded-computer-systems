@@ -1,67 +1,130 @@
-require("dotenv").config();
-const express = require("express");
-const next = require("next");
-const bodyParser = require("body-parser");
-const mqtt = require("mqtt");
-const { actionRunner, ActionModel } = require("./lib/action");
+import "dotenv/config.js";
+
+import Express from "express";
+import Next from "next";
+import { json } from "body-parser";
+import { connect } from "mqtt";
+import { ironSession } from "iron-session/express";
+import { unsealData } from "iron-session";
+import { WebSocketServer } from "ws";
+import cookie from "cookie";
+import { actionRunner, ActionModel } from "./lib/action.js";
+import db from "./lib/db.js";
+import { sessionOptions } from "./lib/session.js";
 
 const dev = process.env.NODE_ENV !== "production";
 const port = dev ? process.env.PORT || 8001 : 80;
-const app = next({ dev });
-const handle = app.getRequestHandler();
+const next = Next({ dev });
+const handle = next.getRequestHandler();
 
-app.prepare().then(() => {
-  const server = express();
+const createMQTTClient = () => {
+  const client = connect(
+    `mqtt://${process.env.MQTT_HOST}:${process.env.MQTT_PORT}`,
+    {
+      username: process.env.MQTT_USERNAME,
+      password: process.env.MQTT_PASSWORD,
+    },
+  );
 
-  server.use(bodyParser.json());
+  client.on("connect", function () {
+    client.subscribe("#");
+  });
+
+  client.on("message", function (topic, message) {
+    const [deviceId, ...rest] = topic.split("/");
+    const sensor = rest.join("_");
+    const value = Number.parseFloat(message);
+
+    const sensorValueRecord = {
+      deviceId,
+      value,
+      time: new Date(),
+      name: sensor,
+    };
+    db.createSensorValue(sensorValueRecord).then(([, err]) => {
+      if (err)
+        console.log(
+          `[SENSOR_VALUE] An error occured while inserting sensor data.`,
+          sensorValueRecord,
+          err,
+        );
+    });
+
+    actionRunner.update(deviceId, sensor, value);
+    // console.log(`[MQTT] ${topic}: ${message.toString()}`);
+  });
+
+  return client;
+};
+
+const loadActions = () =>
+  db.getActions().then(([actions, error]) => {
+    if (error) throw error;
+
+    actions.forEach((action) => {
+      actionRunner.register(new ActionModel(action));
+    });
+    console.log(`[ACTION] ${actions.length} actions registered.`);
+
+    if (error) throw error;
+  });
+
+const createServer = () => {
+  const app = Express();
+
+  app.use(json());
+  app.use(ironSession(sessionOptions));
 
   // add custom path here
   // server.post('/request/custom', custom);
 
-  server.all("*", (req, res) => {
+  app.all("*", (req, res) => {
     return handle(req, res);
   });
 
-  server.listen(port, (err) => {
+  return app.listen(port, (err) => {
     if (err) throw err;
     console.log("Ready on http://localhost:" + port);
   });
-});
+};
 
-actionRunner.register(
-  new ActionModel({
-    id: "1",
-    name: "dht",
-    device_id: "00A9F7DF",
-    condition: "dht > 1",
-    wait_for: 5,
-  }),
-);
+const createWebSocketServer = (server) => {
+  const wss = new WebSocketServer({
+    noServer: true,
+  });
 
-actionRunner.register(
-  new ActionModel({
-    id: "2",
-    name: "dht and temp",
-    device_id: "00A9F7DF",
-    condition: "dht > 1 and temp > 1",
-    wait_for: 5,
-  }),
-);
+  wss.on("connection", function connection(ws, req, client) {
+    ws.on("message", function message(data) {
+      console.log(`Received message ${data} from user ${client}`);
+    });
+  });
 
-const client = mqtt.connect(
-  `mqtt://${process.env.MQTT_HOST}:${process.env.MQTT_PORT}`,
-  {
-    username: process.env.MQTT_USERNAME,
-    password: process.env.MQTT_PASSWORD,
-  },
-);
+  server.on("upgrade", async (req, socket, head) => {
+    if (req.url === "/ws") {
+      const { [sessionOptions.cookieName]: sessionCookie = "" } = cookie.parse(
+        req.headers.cookie || "",
+      );
+      const unsealed = await unsealData(sessionCookie, sessionOptions);
 
-client.on("connect", function () {
-  client.subscribe("#");
-});
+      req.session = { ...(req.session || {}), ...unsealed };
 
-client.on("message", function (topic, message) {
-  const [deviceId, sensor] = topic.split("/");
-  actionRunner.update(deviceId, sensor, Number.parseFloat(message));
-  console.log(`[MQTT] ${topic}: ${message.toString()}`);
+      if (!req.session.user) {
+        socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+        socket.destroy();
+        return;
+      }
+
+      wss.handleUpgrade(req, socket, head, (websocket) => {
+        wss.emit("connection", websocket, req);
+      });
+    }
+  });
+};
+
+next.prepare().then(async () => {
+  const server = createServer();
+  createWebSocketServer(server);
+
+  await loadActions();
+  createMQTTClient();
 });

@@ -1,5 +1,3 @@
-import { withIronSessionApiRoute } from "iron-session/next";
-import { sessionOptions } from "../../../lib/session";
 import * as ss from "superstruct";
 import * as sse from "../../../lib/validation";
 import db from "../../../lib/db";
@@ -10,7 +8,7 @@ const LoginBody = ss.object({
   password: ss.size(ss.string(), 1, 32),
 });
 
-export default withIronSessionApiRoute(async function loginRoute(req, res) {
+export default async function loginRoute(req, res) {
   if (req.method === "POST") {
     const [err, body] = ss.validate(req.body, LoginBody);
 
@@ -40,4 +38,4 @@ export default withIronSessionApiRoute(async function loginRoute(req, res) {
   } else {
     res.status(405).send({ error: true, message: "method not allowed." });
   }
-}, sessionOptions);
+}
