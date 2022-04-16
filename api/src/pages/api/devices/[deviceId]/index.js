@@ -1,17 +1,17 @@
 import { withIronSessionApiRoute } from "iron-session/next";
-import db from "../../../lib/db";
-import { sessionOptions } from "../../../lib/session";
+import db from "../../../../lib/db";
+import { sessionOptions } from "../../../../lib/session";
 
 async function editDevice(req, res) {
   res.send({ error: false, message: "OK editDevice" });
 }
 
 async function getDevice(req, res) {
-  if (req.query.id?.length !== 8) {
+  if (req.query.deviceId?.length !== 8) {
     return res.send({ error: true, message: "id must have 8 characters." });
   }
 
-  const [device, err] = await db.getDeviceById(req.query.id);
+  const [device, err] = await db.getDeviceById(req.query.deviceId);
 
   if (err) {
     console.log(err);
@@ -28,11 +28,11 @@ async function getDevice(req, res) {
 }
 
 async function deleteDevice(req, res) {
-  if (req.query.id?.length !== 8) {
+  if (req.query.deviceId?.length !== 8) {
     return res.send({ error: true, message: "id must have 8 characters." });
   }
 
-  const [device, err] = await db.getDeviceById(req.query.id);
+  const [device, err] = await db.getDeviceById(req.query.deviceId);
 
   if (err) {
     console.log(err);

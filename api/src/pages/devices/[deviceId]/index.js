@@ -1,10 +1,10 @@
 import { useRouter } from "next/router";
 import useSWR from "swr";
-import { PrivateWrapper } from "../../containers/wrappers";
+import { PrivateWrapper } from "../../../containers/wrappers";
 
 function DevicePage() {
   const { query } = useRouter();
-  const { data, error } = useSWR(`/api/devices/${query.id}`);
+  const { data, error } = useSWR(`/api/devices/${query.deviceId}`);
 
   console.log(data, error);
   /**
