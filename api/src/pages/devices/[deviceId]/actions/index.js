@@ -5,12 +5,43 @@ import { PrivateWrapper } from "../../../../containers/wrappers";
 import Loading from "../../../../components/loading";
 import ErrorComponent from "../../../../components/error";
 import Table from "../../../../components/table";
-import { PencilAltIcon, PlusIcon } from "@heroicons/react/solid";
+import { PencilAltIcon, PlusIcon, TrashIcon } from "@heroicons/react/solid";
 import Button from "../../../../components/button";
+import { useCallback } from "react";
+import fetchJson from "../../../../lib/fetchJson";
+import { toast } from "react-hot-toast";
 
 function ActionsPage() {
   const { query } = useRouter();
-  const { data, error } = useSWR(`/api/devices/${query.deviceId}/actions`);
+  const { data, error, mutate } = useSWR(
+    `/api/devices/${query.deviceId}/actions`,
+  );
+
+  const handleDelete = useCallback(
+    async (event) => {
+      console.log(event.target.dataset);
+      const actionId = event.target.dataset.actionId;
+
+      if (confirm("Do you want to delete this action?")) {
+        try {
+          await fetchJson(
+            `/api/devices/${query.deviceId}/actions/${actionId}`,
+            {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+            },
+          );
+
+          mutate(data.filter((action) => action.id !== actionId));
+          toast.success("Deleted successfully.");
+        } catch (e) {
+          toast.error("An error occurred.");
+          console.log(e);
+        }
+      }
+    },
+    [data, mutate, query.deviceId],
+  );
 
   return (
     <PrivateWrapper>
@@ -38,15 +69,32 @@ function ActionsPage() {
                     {new Date(action.triggered_at).toLocaleString()}
                   </Table.td>
                   <Table.td>{action.wait_for}</Table.td>
-                  <Table.td className="text-center ">
-                    <Link
-                      href={`/devices/${query.deviceId}/actions/${action.id}`}
-                      passHref
-                    >
-                      <Button as={"a"} className="w-fit">
-                        <PencilAltIcon className="h-4 w-4 align-middle pb-1 inline-block" />
+                  <Table.td>
+                    <div className="flex justify-center">
+                      <Button
+                        as="div"
+                        className="max-w-fit"
+                        title="Edit action"
+                      >
+                        <Link
+                          href={`/devices/${query.deviceId}/actions/${action.id}`}
+                          passHref
+                        >
+                          <a>
+                            <PencilAltIcon className="h-4 w-4 align-middle pb-1 inline-block pointer-events-none" />
+                          </a>
+                        </Link>
                       </Button>
-                    </Link>
+
+                      <Button
+                        className="max-w-fit"
+                        data-action-id={action.id}
+                        onClick={handleDelete}
+                        title="Delete action"
+                      >
+                        <TrashIcon className="h-4 w-4 align-middle pb-1 inline-block pointer-events-none" />
+                      </Button>
+                    </div>
                   </Table.td>
                 </Table.tr>
               ))}
