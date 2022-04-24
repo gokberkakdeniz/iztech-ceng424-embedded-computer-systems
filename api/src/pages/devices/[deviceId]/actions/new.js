@@ -1,11 +1,10 @@
 import { useRouter } from "next/router";
-import Button from "../../../../components/button";
-import Input from "../../../../components/input";
-import Select from "../../../../components/select";
+import ActionForm from "../../../../components/forms/action";
 import { PrivateWrapper } from "../../../../containers/wrappers";
+import db from "../../../../lib/db";
 import fetchJson from "../../../../lib/fetchJson";
 
-function NewActionPage() {
+function NewActionPage({ sensorNames }) {
   const { query, push, asPath } = useRouter();
 
   const handleSubmit = async (event) => {
@@ -32,74 +31,23 @@ function NewActionPage() {
 
   return (
     <PrivateWrapper>
-      <form className="text-center" onSubmit={handleSubmit}>
-        <label htmlFor="name">
-          <b>Name</b>
-        </label>
-        <br />
-        <Input
-          type="text"
-          placeholder="My action name"
-          name="name"
-          id="name"
-          className="w-full"
-          required
-          autoComplete="off"
-        />
-        <br />
-
-        <label htmlFor="condition">
-          <b>Condition</b>
-        </label>
-        <br />
-        <Input
-          type="text"
-          placeholder="dht_temperature > 11 and dht_humidity <= 22"
-          name="condition"
-          id="condition"
-          className="w-full"
-          required
-          autoComplete="off"
-        />
-        <br />
-
-        <label htmlFor="waitFor">
-          <b>Wait for next run (seconds)</b>
-        </label>
-        <br />
-        <Input
-          type="number"
-          placeholder="10"
-          name="waitFor"
-          id="waitFor"
-          className="w-full"
-          style={{ appearance: "textfield" }}
-          defaultValue={10}
-          required
-          autoComplete="off"
-        />
-        <br />
-
-        <label htmlFor="type">
-          <b>Type</b>
-        </label>
-        <br />
-        <Select
-          id="type"
-          name="type"
-          placeholder="An action to trigger when conditions are met"
-          required
-        >
-          <Select.Option value="telegram" text="Send Telegram Message" />
-          <Select.Option value="email" text="Send Email" />
-          <Select.Option value="power_on" text="Power On Device" />
-        </Select>
-        <br />
-
-        <Button type="submit">Create</Button>
-      </form>
+      <ActionForm
+        sensorNames={sensorNames}
+        submitText={"Create"}
+        onSubmit={handleSubmit}
+      />
     </PrivateWrapper>
   );
+}
+
+export async function getServerSideProps(context) {
+  const { deviceId } = context.params;
+
+  const [sensorNames = [], error] = await db.getSensorsByDeviceId(deviceId);
+
+  if (error) console.log(error);
+
+  return { props: { sensorNames } };
 }
 
 export default NewActionPage;

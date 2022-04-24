@@ -1,15 +1,20 @@
 import clsx from "clsx";
+import React from "react";
 
-function Input({ className = "", ...rest }) {
+const Input = React.forwardRef(({ className = "", ...rest }, ref) => {
   return (
     <input
       className={clsx(
-        "border border-black rounded bg-gray-800 px-1 py-1 mt-2 mb-2 outline-none",
+        "border border-black rounded bg-gray-800 h-8 p-1 my-2 outline-none",
+        "focus:border-yellow-400",
         className,
       )}
       {...rest}
+      ref={ref}
     ></input>
   );
-}
+});
+
+Input.displayName = "Input";
 
 export default Input;

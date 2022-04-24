@@ -1,13 +1,8 @@
 import db from "../../../../../lib/db";
 import * as ss from "superstruct";
 import * as uuid from "uuid";
-
-const ActionBody = ss.object({
-  name: ss.size(ss.string(), 1, 999),
-  condition: ss.size(ss.string(), 1, 999),
-  waitFor: ss.min(ss.number(), 0),
-  type: ss.enums(["telegram", "email", "power_on"]),
-});
+import { ActionModel, actionRunner } from "../../../../../lib/action";
+import { ActionBody } from "../../../../../lib/validation";
 
 async function createAction(req, res) {
   if (req.query.deviceId?.length !== 8) {
@@ -29,6 +24,8 @@ async function createAction(req, res) {
       console.log(err);
       return res.send({ error: true, message: "unknown error." });
     }
+
+    actionRunner.register(new ActionModel(action));
 
     res.status(200).send({ error: false, data: action });
   }

@@ -1,4 +1,5 @@
 import pg from "pg";
+import { snakeCase } from "snake-case";
 
 const pool = new pg.Pool({
   user: process.env.DB_USERNAME,
@@ -46,7 +47,7 @@ export default {
     return this.queryOne("SELECT * FROM devices WHERE id = $1", [id]);
   },
   deleteDeviceById: function (id) {
-    return this.queryOne("DELETE devices WHERE id = $1 RETURNING *", [id]);
+    return this.queryOne("DELETE FROM devices WHERE id = $1 RETURNING *", [id]);
   },
   createDevice: function (device) {
     return this.queryOne(
@@ -67,7 +68,7 @@ export default {
     return this.queryOne("SELECT * FROM actions where id = $1", [id]);
   },
   deleteActionById: function (id) {
-    return this.queryOne("DELETE actions where id = $1", [id]);
+    return this.queryOne("DELETE FROM actions WHERE id = $1 RETURNING *", [id]);
   },
   createAction: function (action) {
     return this.queryOne(
@@ -83,6 +84,19 @@ export default {
       ],
     );
   },
+  updateAction: function (action) {
+    const updatebleFields = ["name", "type", "condition", "waitFor"];
+    const fieldsToBeUpdated = Object.keys(action).filter((column) =>
+      updatebleFields.includes(column),
+    );
+
+    return this.queryOne(
+      `UPDATE actions SET ${fieldsToBeUpdated.map(
+        (column, index) => `${snakeCase(column)} = $${index + 2}`,
+      )} WHERE id = $1 RETURNING *`,
+      [action.id, ...fieldsToBeUpdated.map((column) => action[column])],
+    );
+  },
   // SensorValues
   createSensorValue: function (sensorValue) {
     return this.queryOne(
@@ -94,5 +108,11 @@ export default {
         sensorValue.value,
       ],
     );
+  },
+  getSensorsByDeviceId: function (deviceId) {
+    return this.queryAll(
+      `SELECT DISTINCT name FROM sensor_values WHERE device_id = $1`,
+      [deviceId],
+    ).then(([data, err]) => [data && data.map(({ name }) => name), err]);
   },
 };

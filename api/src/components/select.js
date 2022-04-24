@@ -40,7 +40,7 @@ export default function Select({
         );
 
   return (
-    <div className={className}>
+    <div className={clsx("my-2", className)}>
       <Combobox value={selected} onChange={setSelected}>
         <div className="relative">
           <div

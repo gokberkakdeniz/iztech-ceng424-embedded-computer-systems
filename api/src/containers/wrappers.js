@@ -40,7 +40,7 @@ export function PrivateWrapper({ children }) {
     <>
       <Header>
         <div className="font-bold text-yellow-400">
-          <Link href="/">Header</Link>
+          <Link href="/">Rodones GPWMS</Link>
         </div>
 
         <Strech />
@@ -55,7 +55,18 @@ export function PrivateWrapper({ children }) {
         <UserMenu />
       </Header>
       <Main className="bg-slate-600">{children}</Main>
-      <Footer>lorem ipsum footer...</Footer>
+      <Footer className="text-center">
+        <p>
+          Copyright © 2022 Rodones GPWMS.{" "}
+          <a
+            className="underline"
+            href="https://github.com/gokberkakdeniz/iztech-ceng424-embedded-computer-systems"
+          >
+            Source code
+          </a>{" "}
+          published under the terms of MIT license.
+        </p>
+      </Footer>
     </>
   );
 }
@@ -64,7 +75,19 @@ export function PublicWrapper({ children }) {
   return (
     <>
       <Main>{children}</Main>
-      <Footer>lorem ipsum footer...</Footer>
+      <Footer>
+        {" "}
+        <p>
+          Copyright © 2022 Rodones GPWMS.{" "}
+          <a
+            className="underline"
+            href="https://github.com/gokberkakdeniz/iztech-ceng424-embedded-computer-systems"
+          >
+            Source code
+          </a>{" "}
+          published under the terms of MIT license.
+        </p>
+      </Footer>
     </>
   );
 }

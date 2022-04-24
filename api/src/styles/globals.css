@@ -9,3 +9,19 @@ body {
 #__next {
   @apply h-full w-full;
 }
+
+
+.three-dot::after {
+  display: inline-block;
+  animation: kf-three-dot steps(1,end) 1s infinite;
+  content: '';
+  width: 8px;
+}
+
+@keyframes kf-three-dot {
+  0%   { content: ''; }
+  25%  { content: '.'; }
+  50%  { content: '..'; }
+  75%  { content: '...'; }
+  100% { content: ''; }
+}

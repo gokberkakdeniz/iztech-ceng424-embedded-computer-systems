@@ -81,6 +81,8 @@ export class ActionRunner {
 
     if (this.deviceActionTable[actionModel.deviceId][actionModel.id]) return;
 
+    console.log("[ACTION] registered", actionModel.dump());
+
     this.deviceActionTable[actionModel.deviceId][actionModel.id] = actionModel;
   }
 
@@ -88,6 +90,8 @@ export class ActionRunner {
     if (!(actionModel.deviceId in this.deviceActionTable)) {
       return;
     }
+
+    console.log("[ACTION] unregistered", actionModel.dump());
 
     delete this.deviceActionTable[actionModel.deviceId][actionModel.id];
   }
