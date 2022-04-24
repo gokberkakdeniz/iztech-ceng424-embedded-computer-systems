@@ -65,17 +65,17 @@ function ActionForm({ data = {}, submitText, onSubmit, sensorNames }) {
           placeholder="dht_temperature > 11 and dht_humidity <= 22"
           name="condition"
           id="condition"
-          className="w-full"
+          className="flex-grow"
           required
           autoComplete="off"
           ref={conditionInputRef}
           defaultValue={data.condition}
         />
 
-        <Popover className="relative">
+        <Popover className="">
           <Popover.Button
             as={Button}
-            className="my-2 mr-0 w-fit"
+            className="my-2 mr-0.5 w-8 shrink-0"
             title="Insert sensor name"
           >
             <PuzzleIcon className="w-4" />
