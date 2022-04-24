@@ -75,8 +75,7 @@ export function PublicWrapper({ children }) {
   return (
     <>
       <Main>{children}</Main>
-      <Footer>
-        {" "}
+      <Footer className="text-center">
         <p>
           Copyright © 2022 Rodones GPWMS.{" "}
           <a
