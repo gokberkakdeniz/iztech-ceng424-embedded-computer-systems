@@ -37,22 +37,42 @@ function DevicesPage() {
                   <Table.td>{device.username}</Table.td>
 
                   <Table.td className="text-center">
-                    <div className="inline-block">
-                      <Link href={`/devices/${device.id}/live`} passHref>
-                        <Button as={"a"} className="w-fit">
-                          <TableIcon className="h-4 w-4 align-middle pb-1 inline-block" />
-                        </Button>
-                      </Link>
-                      <Link href={`/devices/${device.id}/actions`} passHref>
-                        <Button as={"a"} className="w-fit">
-                          <BellIcon className="h-4 w-4 align-middle pb-1 inline-block" />
-                        </Button>
-                      </Link>
-                      <Link href={`/devices/${device.id}`} passHref>
-                        <Button as={"a"} className="w-fit">
-                          <PencilAltIcon className="h-4 w-4 align-middle pb-1 inline-block" />
-                        </Button>
-                      </Link>
+                    <div className="flex justify-center">
+                      <Button
+                        as="div"
+                        className="max-w-fit"
+                        title="Show live data"
+                      >
+                        <Link href={`/devices/${device.id}/live`} passHref>
+                          <a>
+                            <TableIcon className="h-4 w-4 align-middle pb-1 inline-block" />
+                          </a>
+                        </Link>
+                      </Button>
+
+                      <Button
+                        as="div"
+                        className="max-w-fit"
+                        title="Show actions"
+                      >
+                        <Link href={`/devices/${device.id}/actions`} passHref>
+                          <a>
+                            <BellIcon className="h-4 w-4 align-middle pb-1 inline-block" />
+                          </a>
+                        </Link>
+                      </Button>
+
+                      <Button
+                        as="div"
+                        className="max-w-fit"
+                        title="Edit device"
+                      >
+                        <Link href={`/devices/${device.id}`} passHref>
+                          <a>
+                            <PencilAltIcon className="h-4 w-4 align-middle pb-1 inline-block" />
+                          </a>
+                        </Link>
+                      </Button>
                     </div>
                   </Table.td>
                 </Table.tr>

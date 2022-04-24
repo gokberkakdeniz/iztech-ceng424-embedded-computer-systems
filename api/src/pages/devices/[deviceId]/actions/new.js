@@ -3,6 +3,7 @@ import ActionForm from "../../../../components/forms/action";
 import { PrivateWrapper } from "../../../../containers/wrappers";
 import db from "../../../../lib/db";
 import fetchJson from "../../../../lib/fetchJson";
+import { toast } from "react-hot-toast";
 
 function NewActionPage({ sensorNames }) {
   const { query, push, asPath } = useRouter();
@@ -23,9 +24,11 @@ function NewActionPage({ sensorNames }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+      toast.success("Created successfully.");
       push(`${asPath.split("/").slice(0, -1).join("/")}/${id}`);
     } catch (e) {
-      console.log("oppsss", e);
+      toast.error("An error occurred.");
+      console.log(e);
     }
   };
 
