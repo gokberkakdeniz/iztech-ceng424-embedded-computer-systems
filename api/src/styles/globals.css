@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  @apply h-screen w-screen text-neutral-100 overflow-hidden;
+  @apply h-screen w-screen text-neutral-100 overflow-x-hidden;
 }
 
 #__next {
