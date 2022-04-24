@@ -9,6 +9,7 @@ const pool = new pg.Pool({
   port: process.env.DB_PORT,
 });
 
+// TODO: use transaction when appropriate
 export default {
   query: (text, params) => pool.query(text, params),
   // Helpers
@@ -64,14 +65,41 @@ export default {
       deviceId,
     ]);
   },
-  getActionById: function (id) {
-    return this.queryOne("SELECT * FROM actions where id = $1", [id]);
+  getActionById: async function (id) {
+    const [actionResult, actionError] = await this.queryOne(
+      "SELECT * FROM actions where id = $1",
+      [id],
+    );
+    if (actionError) return [actionResult, actionError];
+
+    const [actionPropsResult, actionPropsError] = await this.queryAll(
+      `SELECT name, value FROM action_properties WHERE action_id = $1`,
+      [id],
+    );
+
+    if (actionPropsError) return [actionPropsResult, actionPropsError];
+
+    actionResult.props = {};
+    actionPropsResult.forEach((prop) => {
+      const { name, value } = prop;
+      if (name in actionResult.props) {
+        if (Array.isArray(actionResult.props[name])) {
+          actionResult.props[name].push(value);
+        } else {
+          actionResult.props[name] = [actionResult.props[name], value];
+        }
+      } else {
+        actionResult.props[name] = value;
+      }
+    });
+
+    return [actionResult, actionError];
   },
   deleteActionById: function (id) {
     return this.queryOne("DELETE FROM actions WHERE id = $1 RETURNING *", [id]);
   },
-  createAction: function (action) {
-    return this.queryOne(
+  createAction: async function (action) {
+    const [actionResult, actionError] = await this.queryOne(
       "INSERT INTO actions VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
       [
         action.id,
@@ -83,6 +111,40 @@ export default {
         action.waitFor,
       ],
     );
+
+    if (actionError) return [actionResult, actionError];
+
+    const actionPropsEntries = Object.entries(action.props);
+    const [actionPropsResult, actionPropsError] = await this.queryAll(
+      `INSERT INTO action_properties VALUES ${actionPropsEntries
+        .map((_, i) => `($${i * 3 + 1}, $${i * 3 + 2}, $${i * 3 + 3})`)
+        .join(",")} RETURNING *`,
+      [
+        ...actionPropsEntries.flatMap(([name, value]) => [
+          actionResult.id,
+          name,
+          value,
+        ]),
+      ],
+    );
+
+    if (actionPropsError) return [actionPropsResult, actionPropsError];
+
+    actionResult.props = {};
+    actionPropsResult.forEach((prop) => {
+      const { name, value } = prop;
+      if (name in actionResult.props) {
+        if (Array.isArray(actionResult.props[name])) {
+          actionResult.props[name].push(value);
+        } else {
+          actionResult.props[name] = [actionResult.props[name], value];
+        }
+      } else {
+        actionResult.props[name] = value;
+      }
+    });
+
+    return [actionResult, actionError];
   },
   updateAction: function (action) {
     const updatebleFields = ["name", "type", "condition", "waitFor"];

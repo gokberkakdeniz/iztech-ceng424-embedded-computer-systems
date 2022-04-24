@@ -2,11 +2,16 @@ import { Popover } from "@headlessui/react";
 import Button from "../button";
 import Input from "../input";
 import Select from "../select";
-import { QuestionMarkCircleIcon, PuzzleIcon } from "@heroicons/react/solid";
-import { useCallback, useRef } from "react";
+import {
+  QuestionMarkCircleIcon,
+  VariableIcon,
+  ChatIcon,
+} from "@heroicons/react/solid";
+import { useCallback, useRef, useState } from "react";
 
 function ActionForm({ data = {}, submitText, onSubmit, sensorNames }) {
   const conditionInputRef = useRef();
+  const [type, setType] = useState(data.type);
 
   const handleInsertSensorName = useCallback(
     (name, close) => () => {
@@ -38,6 +43,69 @@ function ActionForm({ data = {}, submitText, onSubmit, sensorNames }) {
       </label>
     ),
     [],
+  );
+
+  const renderAdditionalOptions = useCallback(
+    (type, data) => {
+      switch (type) {
+        case "telegram":
+          return (
+            <>
+              {renderLabel(
+                "Receiver Id",
+                "prop__chatId",
+                "You should first send message to the bot.",
+              )}
+              <div className="flex">
+                <Input
+                  type="text"
+                  placeholder="484845455445"
+                  name="prop__chatId"
+                  id="prop__chatId"
+                  className="w-full"
+                  required
+                  autoComplete="off"
+                  defaultValue={data.props?.chatId}
+                />
+                <Button
+                  as="div"
+                  className="my-2 mr-0.5 w-8 shrink-0"
+                  title="Get my chat id"
+                >
+                  <a
+                    href={"https://t.me/rodones_bot?start=sub_xxxx"}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <ChatIcon className="h-4 w-4 align-middle pb-1 inline-block" />
+                  </a>
+                </Button>
+              </div>
+
+              {renderLabel("Message", "prop__message")}
+              <Input
+                placeholder="Temperature is {dht_temperature}!"
+                name="prop__message"
+                id="prop__message"
+                className="w-full h-fit"
+                autoComplete="off"
+                defaultValue={data.props?.message}
+                rows="2"
+                maxLength={1000}
+                multiline
+                required
+              />
+            </>
+          );
+        case "email":
+          return <></>;
+        case "power_on":
+          return <></>;
+        default:
+          return null;
+      }
+    },
+    [renderLabel],
   );
 
   return (
@@ -78,7 +146,7 @@ function ActionForm({ data = {}, submitText, onSubmit, sensorNames }) {
             className="my-2 mr-0.5 w-8 shrink-0"
             title="Insert sensor name"
           >
-            <PuzzleIcon className="w-4" />
+            <VariableIcon className="w-4" />
           </Popover.Button>
 
           <Popover.Panel className="flex flex-wrap z-50 bg-gray-800 rounded absolute right-1 w-max max-w-xs">
@@ -121,13 +189,16 @@ function ActionForm({ data = {}, submitText, onSubmit, sensorNames }) {
         name="type"
         placeholder="An action to trigger when conditions are met"
         required
-        defaultValue={data.type}
+        onChange={setType}
+        value={type}
       >
         <Select.Option value="telegram" text="Send Telegram Message" />
         <Select.Option value="email" text="Send Email" />
         <Select.Option value="power_on" text="Power On Device" />
       </Select>
       <br />
+
+      {renderAdditionalOptions(type, data)}
 
       <Button type="submit">{submitText}</Button>
     </form>

@@ -52,6 +52,14 @@ create table sensor_values (
 select
   create_hypertable('sensor_values', 'time');
 
+create table action_properties (
+  action_id uuid not null,
+  name varchar(256) not null,
+  value text not null,
+  foreign key (action_id) references actions (id)
+);
+
+
 -- INSERT DATA
 insert into
   users

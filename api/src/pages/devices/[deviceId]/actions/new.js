@@ -16,6 +16,11 @@ function NewActionPage({ sensorNames }) {
       condition: event.target.condition.value,
       waitFor: Number.parseInt(event.target.waitFor.value),
       type: event.target.type.value,
+      props: Object.fromEntries(
+        Array.from(event.target.elements)
+          .filter((element) => element.name?.startsWith("prop__"))
+          .map((element) => [element.name.substring(6), element.value]),
+      ),
     };
 
     try {

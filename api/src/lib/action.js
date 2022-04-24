@@ -1,6 +1,52 @@
 import { compileExpression } from "filtrex";
 import db from "./db.js";
 
+export class Action {
+  constructor(raw) {
+    this.type = raw.type;
+  }
+
+  run() {
+    throw new Error("Not implemented.");
+  }
+}
+
+export class TelegramAction extends Action {
+  constructor(raw) {
+    super(raw);
+    console.log(raw);
+  }
+
+  run() {}
+}
+
+export class EmailAction extends Action {
+  constructor(raw) {
+    super(raw);
+    console.log(raw);
+  }
+
+  run() {}
+}
+
+export class PowerOnDeviceAction extends Action {
+  constructor(raw) {
+    super(raw);
+    console.log(raw);
+  }
+
+  run() {}
+}
+
+export class WebHookAction extends Action {
+  constructor(raw) {
+    super(raw);
+    console.log(raw);
+  }
+
+  run() {}
+}
+
 export class ActionModel {
   constructor(raw) {
     this.id = raw.id;

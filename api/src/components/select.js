@@ -1,10 +1,19 @@
-import { Fragment, useState, Children, isValidElement, useMemo } from "react";
+import {
+  Fragment,
+  useState,
+  Children,
+  isValidElement,
+  useMemo,
+  useEffect,
+} from "react";
 import { Combobox, Transition } from "@headlessui/react";
 import { CheckIcon, SelectorIcon } from "@heroicons/react/solid";
 import clsx from "clsx";
 
 export default function Select({
   className,
+  value = "",
+  onChange = null,
   defaultValue = "",
   placeholder = "",
   required = false,
@@ -12,7 +21,7 @@ export default function Select({
   name,
   children,
 }) {
-  const [selected, setSelected] = useState(defaultValue);
+  const [selected, setSelected] = useState(value ?? defaultValue);
   const [query, setQuery] = useState("");
 
   const options = useMemo(() => {
@@ -26,6 +35,10 @@ export default function Select({
     });
     return result;
   }, [children]);
+
+  useEffect(() => {
+    onChange?.(selected);
+  }, [selected, onChange]);
 
   const filteredOptions =
     query === ""
