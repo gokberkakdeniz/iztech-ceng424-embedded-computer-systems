@@ -29,7 +29,7 @@ export default async function loginRoute(req, res) {
         body.password,
         user?.password ?? "timingAttack",
       );
-      delete user.password;
+      if (user) delete user.password;
 
       if (!isOk) {
         res.status(401).send({ error: true, message: "invalid crediantials." });
