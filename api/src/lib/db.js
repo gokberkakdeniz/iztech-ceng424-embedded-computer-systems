@@ -274,4 +274,22 @@ export default {
       [deviceId],
     ).then(([data, err]) => [data && data.map(({ name }) => name), err]);
   },
+  getLatestSensorValuesByDeviceId: async function (deviceId) {
+    const [sensors, sensorErr] = await this.getSensorsByDeviceId(deviceId);
+    if (sensorErr) return [sensors, sensorErr];
+    const result = {};
+    for (const sensor of sensors) {
+      const [{ value } = {}, valueErr] = await this.queryOne(
+        "SELECT value FROM sensor_values WHERE device_id = $1 AND name = $2 ORDER BY time DESC LIMIT 1",
+        [deviceId, sensor],
+      );
+
+      if (valueErr) {
+        return [null, valueErr];
+      }
+
+      result[sensor] = value;
+    }
+    return [result, null];
+  },
 };

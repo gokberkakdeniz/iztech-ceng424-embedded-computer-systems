@@ -1,10 +1,11 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { PrivateWrapper } from "../../../containers/wrappers";
+import db from "../../../lib/db";
 
-function DeviceLivePage() {
+function DeviceLivePage({ initialData = {} }) {
   const { query } = useRouter();
-  const [sensors, setSensors] = useState({});
+  const [sensors, setSensors] = useState(initialData);
 
   useEffect(() => {
     if (!query.deviceId) return;
@@ -32,6 +33,17 @@ function DeviceLivePage() {
       <pre>{JSON.stringify(sensors, undefined, 2)}</pre>
     </PrivateWrapper>
   );
+}
+
+export async function getServerSideProps(context) {
+  // NOTE: why not just send http req to internal server? :/
+  const [data, err] = await db.getLatestSensorValuesByDeviceId(
+    context.params.deviceId,
+  );
+
+  const initialData = err ? {} : data;
+
+  return { props: { initialData } };
 }
 
 export default DeviceLivePage;
