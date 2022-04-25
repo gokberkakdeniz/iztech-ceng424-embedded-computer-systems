@@ -21,19 +21,50 @@ function DeviceLivePage({ initialData = {}, statistics = {} }) {
     ws.onmessage = (event) => {
       const { name, value } = JSON.parse(event.data);
       setSensors((s) => ({ ...s, [name]: value }));
+      statistics[name] += 1;
+      statistics.__total__ += 1;
     };
 
     return () => {
       ws.close();
     };
-  }, [query.deviceId, setSensors]);
+  }, [query.deviceId, setSensors, statistics]);
 
   return (
     <PrivateWrapper>
-      <b>live</b>
-      <pre>{JSON.stringify(sensors, undefined, 2)}</pre>
-      <b>statistics</b>
-      <pre>{JSON.stringify(statistics, undefined, 2)}</pre>
+      <div className="grid md:grid-cols-4 grid-cols-2 gap-1">
+        {Object.entries(sensors).map(([name, value]) => {
+          const [sensor, ...sensorOutput] = name.split("_");
+
+          return (
+            <div key={name} className="bg-gray-700 p-2 rounded">
+              <div>
+                <span className="font-bold">{sensor}</span>
+
+                {sensorOutput.length > 0 && (
+                  <>
+                    <span className="font-bold"> / </span>
+                    <span>{sensorOutput.join("/")}</span>
+                  </>
+                )}
+              </div>
+              <div className="font-mono">{value}</div>
+              <div
+                className="text-right"
+                title="Number of values belongs to this sensor"
+              >
+                {statistics[name]}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div
+        className="text-right w-full"
+        title="Number of values belongs to this device"
+      >
+        <b>Total:</b> {statistics.__total__}
+      </div>
     </PrivateWrapper>
   );
 }
