@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import useUser from "../lib/useUser";
 import fetchJson, { FetchError } from "../lib/fetchJson";
 import { PublicWrapper } from "../containers/wrappers";
@@ -6,6 +6,7 @@ import Input from "../components/input";
 import Button from "../components/button";
 
 function LoginPage() {
+  const [errorMessage, setErrorMessage] = useState("");
   const { mutateUser } = useUser({
     redirectTo: "/",
     redirectIf: "logged",
@@ -14,6 +15,8 @@ function LoginPage() {
   const handleSubmit = useCallback(
     async (event) => {
       event.preventDefault();
+
+      setErrorMessage("");
 
       const body = {
         email: event.currentTarget.email.value,
@@ -29,12 +32,15 @@ function LoginPage() {
           }),
         );
       } catch (error) {
+        let message = "An unexpected error happened.";
+
         if (error instanceof FetchError) {
-          // TODO(@ebkaraca): show this message in the UI.
-          console.log(error.data.message);
+          message = error.data.message;
         } else {
-          console.error("An unexpected error happened:", error);
+          console.error(error);
         }
+
+        setErrorMessage(message);
       }
     },
     [mutateUser],
@@ -75,6 +81,7 @@ function LoginPage() {
         <br />
 
         <Button type="submit">Login</Button>
+        <div className="font-bold text-red-500">{errorMessage}</div>
       </form>
     </PublicWrapper>
   );

@@ -32,7 +32,10 @@ export default async function loginRoute(req, res) {
       if (user) delete user.password;
 
       if (!isOk) {
-        res.status(401).send({ error: true, message: "invalid crediantials." });
+        res.status(401).send({
+          error: true,
+          message: "The email or password is incorrect.",
+        });
       } else {
         req.session.user = user;
         await req.session.save();
