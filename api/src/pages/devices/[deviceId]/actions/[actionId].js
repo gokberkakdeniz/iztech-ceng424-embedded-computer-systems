@@ -8,7 +8,7 @@ import ErrorComponent from "../../../../components/error";
 import fetchJson from "../../../../lib/fetchJson";
 import { toast } from "react-hot-toast";
 
-function ActionPage({ sensorNames }) {
+function ActionPage({ sensorNames, telegramGetChatIdToken }) {
   const { query } = useRouter();
   const { data, error, mutate } = useSWR(
     `/api/devices/${query.deviceId}/actions/${query.actionId}`,
@@ -57,6 +57,7 @@ function ActionPage({ sensorNames }) {
           sensorNames={sensorNames}
           submitText={"Save"}
           onSubmit={handleSubmit}
+          telegramGetChatIdToken={telegramGetChatIdToken}
         />
       )}
     </PrivateWrapper>
@@ -64,13 +65,14 @@ function ActionPage({ sensorNames }) {
 }
 
 export async function getServerSideProps(context) {
-  const { deviceId } = context.params;
+  const { deviceId, actionId } = context.params;
 
   const [sensorNames = [], error] = await db.getSensorsByDeviceId(deviceId);
+  const telegramGetChatIdToken = actionId;
 
   if (error) console.log(error);
 
-  return { props: { sensorNames } };
+  return { props: { sensorNames, telegramGetChatIdToken } };
 }
 
 export default ActionPage;

@@ -7,9 +7,102 @@ import {
   VariableIcon,
   ChatIcon,
 } from "@heroicons/react/solid";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import fetchJSON from "../../lib/fetchJson";
+const renderLabel = (text, htmlFor, description) => (
+  <label htmlFor={htmlFor} className="flex justify-center gap-1">
+    <b>{text}</b>
 
-function ActionForm({ data = {}, submitText, onSubmit, sensorNames }) {
+    {description && (
+      <span title={description}>
+        <QuestionMarkCircleIcon className="h-full w-4" />
+      </span>
+    )}
+  </label>
+);
+
+function TelegramActionForm({ data = {}, token = "" }) {
+  const [polling, setPolling] = useState(false);
+  const chatIdInputRef = useRef();
+
+  useEffect(() => {
+    if (!polling) return;
+
+    let intervalId = 0;
+
+    const fetchChatId = () =>
+      fetchJSON(`/api/webhooks/telegram/${token}`)
+        .then((data) => {
+          if (data) {
+            chatIdInputRef.current.value = data;
+            clearInterval(intervalId);
+            setPolling(false);
+          }
+        })
+        .catch(console.log);
+
+    intervalId = setInterval(fetchChatId, 1000);
+  }, [polling, token]);
+
+  return (
+    <>
+      {renderLabel(
+        "Receiver Id",
+        "prop__chatId",
+        "You should first send message to the bot.",
+      )}
+      <div className="flex">
+        <Input
+          type="text"
+          placeholder="484845455445"
+          name="prop__chatId"
+          id="prop__chatId"
+          className="w-full"
+          required
+          autoComplete="off"
+          defaultValue={data.props?.chatId}
+          ref={chatIdInputRef}
+        />
+        <Button
+          as="div"
+          className="my-2 mr-0.5 w-8 shrink-0"
+          title="Get my chat id"
+        >
+          <a
+            href={`https://t.me/rodones_bot?start=token_${token}`}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => setPolling(true)}
+          >
+            <ChatIcon className="h-4 w-4 align-middle pb-1 inline-block" />
+          </a>
+        </Button>
+      </div>
+
+      {renderLabel("Message", "prop__message")}
+      <Input
+        placeholder="Temperature is {dht_temperature}!"
+        name="prop__message"
+        id="prop__message"
+        className="w-full h-fit"
+        autoComplete="off"
+        defaultValue={data.props?.message}
+        rows="2"
+        maxLength={1000}
+        multiline
+        required
+      />
+    </>
+  );
+}
+
+function ActionForm({
+  data = {},
+  telegramGetChatIdToken = "",
+  submitText,
+  onSubmit,
+  sensorNames,
+}) {
   const conditionInputRef = useRef();
   const [type, setType] = useState(data.type);
 
@@ -30,73 +123,11 @@ function ActionForm({ data = {}, submitText, onSubmit, sensorNames }) {
     [conditionInputRef],
   );
 
-  const renderLabel = useCallback(
-    (text, htmlFor, description) => (
-      <label htmlFor={htmlFor} className="flex justify-center gap-1">
-        <b>{text}</b>
-
-        {description && (
-          <span title={description}>
-            <QuestionMarkCircleIcon className="h-full w-4" />
-          </span>
-        )}
-      </label>
-    ),
-    [],
-  );
-
   const renderAdditionalOptions = useCallback(
-    (type, data) => {
+    (type, data, { token }) => {
       switch (type) {
         case "telegram":
-          return (
-            <>
-              {renderLabel(
-                "Receiver Id",
-                "prop__chatId",
-                "You should first send message to the bot.",
-              )}
-              <div className="flex">
-                <Input
-                  type="text"
-                  placeholder="484845455445"
-                  name="prop__chatId"
-                  id="prop__chatId"
-                  className="w-full"
-                  required
-                  autoComplete="off"
-                  defaultValue={data.props?.chatId}
-                />
-                <Button
-                  as="div"
-                  className="my-2 mr-0.5 w-8 shrink-0"
-                  title="Get my chat id"
-                >
-                  <a
-                    href={"https://t.me/rodones_bot?start=sub_xxxx"}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <ChatIcon className="h-4 w-4 align-middle pb-1 inline-block" />
-                  </a>
-                </Button>
-              </div>
-
-              {renderLabel("Message", "prop__message")}
-              <Input
-                placeholder="Temperature is {dht_temperature}!"
-                name="prop__message"
-                id="prop__message"
-                className="w-full h-fit"
-                autoComplete="off"
-                defaultValue={data.props?.message}
-                rows="2"
-                maxLength={1000}
-                multiline
-                required
-              />
-            </>
-          );
+          return <TelegramActionForm token={token} data={data} />;
         case "email":
           return <></>;
         case "power_on":
@@ -198,7 +229,7 @@ function ActionForm({ data = {}, submitText, onSubmit, sensorNames }) {
       </Select>
       <br />
 
-      {renderAdditionalOptions(type, data)}
+      {renderAdditionalOptions(type, data, { token: telegramGetChatIdToken })}
 
       <Button type="submit">{submitText}</Button>
     </form>

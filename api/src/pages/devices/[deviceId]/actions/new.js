@@ -4,8 +4,9 @@ import { PrivateWrapper } from "../../../../containers/wrappers";
 import db from "../../../../lib/db";
 import fetchJson from "../../../../lib/fetchJson";
 import { toast } from "react-hot-toast";
+import * as uuid from "uuid";
 
-function NewActionPage({ sensorNames }) {
+function NewActionPage({ sensorNames, telegramGetChatIdToken }) {
   const { query, push, asPath } = useRouter();
 
   const handleSubmit = async (event) => {
@@ -43,6 +44,7 @@ function NewActionPage({ sensorNames }) {
         sensorNames={sensorNames}
         submitText={"Create"}
         onSubmit={handleSubmit}
+        telegramGetChatIdToken={telegramGetChatIdToken}
       />
     </PrivateWrapper>
   );
@@ -52,10 +54,11 @@ export async function getServerSideProps(context) {
   const { deviceId } = context.params;
 
   const [sensorNames = [], error] = await db.getSensorsByDeviceId(deviceId);
+  const telegramGetChatIdToken = uuid.v4();
 
   if (error) console.log(error);
 
-  return { props: { sensorNames } };
+  return { props: { sensorNames, telegramGetChatIdToken } };
 }
 
 export default NewActionPage;

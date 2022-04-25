@@ -13,7 +13,8 @@ import db from "./lib/db.js";
 import { sessionOptions } from "./lib/session.js";
 
 const dev = process.env.NODE_ENV !== "production";
-const port = dev ? process.env.PORT || 8001 : 80;
+const port = process.env.PORT || 8001;
+console.log(port);
 const next = Next({ dev });
 const handle = next.getRequestHandler();
 
