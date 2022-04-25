@@ -292,4 +292,22 @@ export default {
     }
     return [result, null];
   },
+  getSensorValueCountByDeviceId: async function (deviceId) {
+    const [sensors, sensorErr] = await this.getSensorsByDeviceId(deviceId);
+    if (sensorErr) return [sensors, sensorErr];
+    const result = {};
+    for (const sensor of sensors) {
+      const [{ value_count } = {}, valueErr] = await this.queryOne(
+        "SELECT count(*) AS value_count FROM sensor_values WHERE device_id = $1 AND name = $2",
+        [deviceId, sensor],
+      );
+
+      if (valueErr) {
+        return [null, valueErr];
+      }
+
+      result[sensor] = Number.parseInt(value_count);
+    }
+    return [result, null];
+  },
 };

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { PrivateWrapper } from "../../../containers/wrappers";
 import db from "../../../lib/db";
 
-function DeviceLivePage({ initialData = {} }) {
+function DeviceLivePage({ initialData = {}, statistics = {} }) {
   const { query } = useRouter();
   const [sensors, setSensors] = useState(initialData);
 
@@ -30,7 +30,10 @@ function DeviceLivePage({ initialData = {} }) {
 
   return (
     <PrivateWrapper>
+      <b>live</b>
       <pre>{JSON.stringify(sensors, undefined, 2)}</pre>
+      <b>statistics</b>
+      <pre>{JSON.stringify(statistics, undefined, 2)}</pre>
     </PrivateWrapper>
   );
 }
@@ -40,10 +43,19 @@ export async function getServerSideProps(context) {
   const [data, err] = await db.getLatestSensorValuesByDeviceId(
     context.params.deviceId,
   );
-
   const initialData = err ? {} : data;
 
-  return { props: { initialData } };
+  // NOTE: why not just send http req to internal server? :/
+  const [statsData, statsErr] = await db.getSensorValueCountByDeviceId(
+    context.params.deviceId,
+  );
+  const statistics = statsErr ? {} : statsData;
+  statistics.__total__ = Object.values(statistics).reduce(
+    (pre, curr) => pre + curr,
+    0,
+  );
+
+  return { props: { initialData, statistics } };
 }
 
 export default DeviceLivePage;
