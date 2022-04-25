@@ -33,7 +33,12 @@ export default async function registerRoute(req, res) {
             .status(403)
             .send({ error: true, message: "user already registered." });
         } else {
-          console.log(err);
+          console.log({
+            name: "register_route_error",
+            user,
+            error: err,
+          });
+
           res.status(500).send({ error: true, message: "unknown error." });
         }
       } else {

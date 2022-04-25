@@ -8,7 +8,12 @@ async function getDevices(req, res) {
   const [devices, err] = await db.getDevicesByOwnerId(req.session.user.id);
 
   if (err) {
-    console.log(err);
+    console.log({
+      name: "get_devices_error",
+      user_id: req.session.user.id,
+      error: err,
+    });
+
     return res.send({ error: true, message: "unknown error." });
   }
 

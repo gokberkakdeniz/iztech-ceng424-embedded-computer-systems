@@ -33,7 +33,12 @@ async function deleteDevice(req, res) {
   const [device, err] = await db.getDeviceById(req.query.deviceId);
 
   if (err) {
-    console.log(err);
+    console.log({
+      name: "delete_device_error_get",
+      error: err,
+      device_id: req.query.deviceId,
+    });
+
     return res.send({ error: true, message: "unknown error." });
   }
 
@@ -44,7 +49,12 @@ async function deleteDevice(req, res) {
   const [deletedDevice, deleteErr] = await db.deleteDeviceById(device.id);
 
   if (deleteErr) {
-    console.log(deleteErr);
+    console.log({
+      name: "delete_device_error_delete",
+      error: err,
+      device_id: req.query.deviceId,
+    });
+
     return res.send({ error: true, message: "unknown error." });
   }
 

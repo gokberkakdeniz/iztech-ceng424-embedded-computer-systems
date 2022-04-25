@@ -2,9 +2,7 @@ import { compileExpression } from "filtrex";
 import db from "./db.js";
 
 export class Action {
-  constructor(raw) {
-    this.type = raw.type;
-  }
+  constructor() {}
 
   run() {
     throw new Error("Not implemented.");
@@ -13,49 +11,106 @@ export class Action {
 
 export class TelegramAction extends Action {
   constructor(raw) {
-    super(raw);
-    console.log(raw);
+    super();
+
+    this.message = raw.message;
+    this.chatId = raw.chat_id;
   }
 
-  run() {}
+  async run(data) {
+    const message = this.message.replaceAll(
+      /\{([a-zA-Z0-9_-]+)\}/g,
+      (match, p1) => {
+        return data[p1] ?? match;
+      },
+    );
+
+    const result = await this.tg("sendmessage", {
+      chat_id: this.chatId,
+      text: message,
+      // parse_mode: "MarkdownV2",
+      parse_mode: "HTML",
+    });
+
+    return result;
+  }
+
+  async tg(type, data) {
+    try {
+      const response = await fetch(
+        `https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/${type}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        },
+      ).then((res) => res.json());
+
+      if (!response.ok)
+        return {
+          error: true,
+          message: "telegram error.",
+          data: response,
+        };
+
+      return {
+        error: false,
+        data: response,
+      };
+    } catch (e) {
+      return {
+        error: true,
+        message: e.message,
+      };
+    }
+  }
 }
 
 export class EmailAction extends Action {
-  constructor(raw) {
-    super(raw);
-    console.log(raw);
+  constructor() {
+    super();
   }
 
   run() {}
 }
 
 export class PowerOnDeviceAction extends Action {
-  constructor(raw) {
-    super(raw);
-    console.log(raw);
+  constructor() {
+    super();
   }
 
   run() {}
 }
 
 export class WebHookAction extends Action {
-  constructor(raw) {
-    super(raw);
-    console.log(raw);
+  constructor() {
+    super();
   }
 
   run() {}
 }
 
+const actionTypeClassMap = {
+  telegram: TelegramAction,
+  email: EmailAction,
+  power_on: PowerOnDeviceAction,
+};
+
 export class ActionModel {
   constructor(raw) {
     this.id = raw.id;
-    this.name = raw.id;
+    this.name = raw.name;
     this.type = raw.type;
     this.deviceId = raw.device_id;
     this.triggeredAt = raw.triggered_at;
     this.condition = raw.condition;
     this.waitFor = Number.parseFloat(raw.wait_for);
+
+    this.action = new actionTypeClassMap[this.type](raw.props);
+
+    if (this.triggeredAt) this.setNextRun();
   }
 
   get condition() {
@@ -80,20 +135,19 @@ export class ActionModel {
         this.triggeredAt = now;
         this.setNextRun();
 
+        const result = await this.action.run(values).catch((x) => x);
+
         const [, err] = await db.queryOne(
           "UPDATE actions SET triggered_at = $1 WHERE id = $2",
           [this.triggeredAt, this.id],
         );
 
-        if (err) {
-          console.log(
-            "[ACTION]",
-            "Could not update triggered at of ",
-            this.dump(),
-          );
-        }
-
-        console.log("[ACTION]", this.dump());
+        console.log({
+          name: "action_triggered",
+          result: result,
+          action: this.dump(),
+          error: err,
+        });
       }
     }
   }
@@ -125,9 +179,21 @@ export class ActionRunner {
       this.callbacks.update[actionModel.deviceId] = [];
     }
 
-    if (this.deviceActionTable[actionModel.deviceId][actionModel.id]) return;
+    if (this.deviceActionTable[actionModel.deviceId][actionModel.id]) {
+      const current =
+        this.deviceActionTable[actionModel.deviceId][actionModel.id];
+      actionModel.triggeredAt = current.triggeredAt;
 
-    console.log("[ACTION] registered", actionModel.dump());
+      console.log({
+        name: "action_changed",
+        model: actionModel.dump(),
+      });
+    } else {
+      console.log({
+        name: "action_registered",
+        model: actionModel.dump(),
+      });
+    }
 
     this.deviceActionTable[actionModel.deviceId][actionModel.id] = actionModel;
   }
@@ -137,7 +203,10 @@ export class ActionRunner {
       return;
     }
 
-    console.log("[ACTION] unregistered", actionModel.dump());
+    console.log({
+      name: "action_unregistered",
+      model: actionModel.dump(),
+    });
 
     delete this.deviceActionTable[actionModel.deviceId][actionModel.id];
   }
@@ -161,6 +230,14 @@ export class ActionRunner {
     );
 
     values[sensorName] = sensorValue;
+
+    // console.log({
+    //   name: "action_runner_update",
+    //   deviceId,
+    //   sensorName,
+    //   sensorValue,
+    //   effectedActionCount: Object.keys(actions).length,
+    // });
 
     for (const action_id in actions) {
       const action = actions[action_id];

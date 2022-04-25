@@ -48,19 +48,19 @@ function TelegramActionForm({ data = {}, token = "" }) {
     <>
       {renderLabel(
         "Receiver Id",
-        "prop__chatId",
+        "prop__chat_id",
         "You should first send message to the bot.",
       )}
       <div className="flex">
         <Input
           type="text"
           placeholder="484845455445"
-          name="prop__chatId"
-          id="prop__chatId"
+          name="prop__chat_id"
+          id="prop__chat_id"
           className="w-full"
           required
           autoComplete="off"
-          defaultValue={data.props?.chatId}
+          defaultValue={data.props?.chat_id}
           ref={chatIdInputRef}
         />
         <Button
@@ -123,21 +123,18 @@ function ActionForm({
     [conditionInputRef],
   );
 
-  const renderAdditionalOptions = useCallback(
-    (type, data, { token }) => {
-      switch (type) {
-        case "telegram":
-          return <TelegramActionForm token={token} data={data} />;
-        case "email":
-          return <></>;
-        case "power_on":
-          return <></>;
-        default:
-          return null;
-      }
-    },
-    [renderLabel],
-  );
+  const renderAdditionalOptions = useCallback((type, data, { token }) => {
+    switch (type) {
+      case "telegram":
+        return <TelegramActionForm token={token} data={data} />;
+      case "email":
+        return <></>;
+      case "power_on":
+        return <></>;
+      default:
+        return null;
+    }
+  }, []);
 
   return (
     <form className="text-center" onSubmit={onSubmit}>

@@ -1,7 +1,6 @@
 import db from "../../../../../lib/db";
 import * as ss from "superstruct";
 import * as uuid from "uuid";
-import { ActionModel, actionRunner } from "../../../../../lib/action";
 import { ActionBody } from "../../../../../lib/validation";
 
 async function createAction(req, res) {
@@ -21,11 +20,21 @@ async function createAction(req, res) {
     const [action, err] = await db.createAction(body);
 
     if (err) {
-      console.log(err);
+      console.log({
+        name: "create_action_error",
+        error: err,
+      });
+
       return res.send({ error: true, message: "unknown error." });
     }
 
-    actionRunner.register(new ActionModel(action));
+    fetch(`http://localhost:${process.env.INTERNAL_PORT}/action-runner`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(action),
+    });
 
     res.status(200).send({ error: false, data: action });
   }
@@ -39,7 +48,11 @@ async function getActions(req, res) {
   const [device, deviceErr] = await db.getDeviceById(req.query.deviceId);
 
   if (deviceErr) {
-    console.log(deviceErr);
+    console.log({
+      name: "get_actions_err",
+      error: deviceErr,
+    });
+
     return res.send({ error: true, message: "unknown error." });
   }
 
@@ -52,7 +65,11 @@ async function getActions(req, res) {
   );
 
   if (actionsErr) {
-    console.log(actionsErr);
+    console.log({
+      name: "get_actions_err",
+      error: actionsErr,
+    });
+
     return res.send({ error: true, message: "unknown error." });
   }
 

@@ -57,8 +57,45 @@ export default {
     );
   },
   // Actions
-  getActions: function () {
-    return this.queryAll("SELECT * FROM actions");
+  getActions: async function (includeProps = false) {
+    const [actionResult, actionError] = await this.queryAll(
+      "SELECT * FROM actions",
+    );
+
+    if (actionError) return [actionResult, actionError];
+
+    if (includeProps) {
+      const [actionPropsResult, actionPropsError] = await this.queryAll(
+        "SELECT * FROM action_properties",
+      );
+
+      if (actionPropsError) return [null, actionPropsError];
+
+      const actionResultMap = actionResult.reduce((acc, cur) => {
+        cur.props = {};
+        acc[cur.id] = cur;
+        return acc;
+      }, {});
+
+      actionPropsResult.forEach((prop) => {
+        const { action_id, name, value } = prop;
+        const action = actionResultMap[action_id];
+
+        if (!action) return;
+
+        if (name in action.props) {
+          if (Array.isArray(action.props[name])) {
+            action.props[name].push(value);
+          } else {
+            action.props[name] = [actionResult.props[name], value];
+          }
+        } else {
+          action.props[name] = value;
+        }
+      });
+    }
+
+    return [actionResult, actionError];
   },
   getActionsByDeviceId: function (deviceId) {
     return this.queryAll("SELECT * FROM actions where device_id = $1", [
@@ -70,7 +107,7 @@ export default {
       "SELECT * FROM actions where id = $1",
       [id],
     );
-    if (actionError) return [actionResult, actionError];
+    if (actionError || !actionResult) return [actionResult, actionError];
 
     const [actionPropsResult, actionPropsError] = await this.queryAll(
       `SELECT name, value FROM action_properties WHERE action_id = $1`,

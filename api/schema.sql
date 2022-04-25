@@ -56,7 +56,7 @@ create table action_properties (
   action_id uuid not null,
   name varchar(256) not null,
   value text not null,
-  foreign key (action_id) references actions (id)
+  foreign key (action_id) references actions (id) on delete cascade;
 );
 
 

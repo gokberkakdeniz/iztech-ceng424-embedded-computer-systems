@@ -1,5 +1,4 @@
 import db from "../../../../../lib/db";
-import { ActionModel, actionRunner } from "../../../../../lib/action";
 import * as isUuid from "is-uuid";
 import * as ss from "superstruct";
 import { ActionBody } from "../../../../../lib/validation";
@@ -20,7 +19,11 @@ async function editAction(req, res) {
   if (!action) {
     return res.send({ error: true, message: "action not found." });
   } else if (actionErr) {
-    console.log(actionErr);
+    console.log({
+      name: "edit_action_error",
+      error: actionErr,
+    });
+
     return res.send({
       error: true,
       message: "error occured while fetching action.",
@@ -32,7 +35,11 @@ async function editAction(req, res) {
   if (!device) {
     return res.send({ error: true, message: "device not found." });
   } else if (deviceErr) {
-    console.log(deviceErr);
+    console.log({
+      name: "edit_action_error",
+      error: deviceErr,
+    });
+
     return res.send({
       error: true,
       message: "error occured while fetching device.",
@@ -49,12 +56,24 @@ async function editAction(req, res) {
   const [updatedAction, updatedActionErr] = await db.updateAction(body);
 
   if (updatedActionErr) {
-    console.log(updatedActionErr);
+    console.log({
+      name: "edit_action_error",
+      error: updatedActionErr,
+    });
+
     return res.send({
       error: true,
       message: "an error occured while updating action.",
     });
   }
+
+  fetch(`http://localhost:${process.env.INTERNAL_PORT}/action-runner`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(updatedAction),
+  });
 
   res.send({ error: false, data: updatedAction });
 }
@@ -69,14 +88,22 @@ async function getAction(req, res) {
   if (!action) {
     return res.send({ error: true, message: "not found" });
   } else if (actionErr) {
-    console.log(actionErr);
+    console.log({
+      name: "get_action_error",
+      error: actionErr,
+    });
+
     return res.send({ error: true, message: "unknown error." });
   }
 
   const [device, deviceErr] = await db.getDeviceById(action.device_id);
 
   if (deviceErr) {
-    console.log(deviceErr);
+    console.log({
+      name: "get_action_error",
+      error: deviceErr,
+    });
+
     return res.send({ error: true, message: "unknown error." });
   } else if (device.owner_id != req.session.user.id) {
     return res.send({ error: true, message: "not found" });
@@ -93,7 +120,11 @@ async function deleteAction(req, res) {
   const [action, err] = await db.getActionById(req.query.actionId);
 
   if (err) {
-    console.log(err);
+    console.log({
+      name: "delete_action_error",
+      error: err,
+    });
+
     return res.send({ error: true, message: "unknown error." });
   } else if (!action) {
     return res.send({ error: true, message: "not found" });
@@ -101,7 +132,11 @@ async function deleteAction(req, res) {
 
   const [device, deviceErr] = await db.getDeviceById(action.device_id);
   if (deviceErr) {
-    console.log(deviceErr);
+    console.log({
+      name: "delete_action_error",
+      error: deviceErr,
+    });
+
     return res.send({ error: true, message: "unknown error." });
   } else if (device.owner_id != req.session.user.id) {
     return res.send({ error: true, message: "not found" });
@@ -110,11 +145,23 @@ async function deleteAction(req, res) {
   const [deletedAction, deleteErr] = await db.deleteActionById(action.id);
 
   if (deleteErr) {
-    console.log(deleteErr);
+    console.log({
+      name: "delete_action_error",
+      error: deleteErr,
+    });
+
     return res.send({ error: true, message: "unknown error." });
   }
 
-  actionRunner.unregister(new ActionModel(deletedAction));
+  deletedAction.props = {}; // sorry...
+
+  fetch(`http://localhost:${process.env.INTERNAL_PORT}/action-runner`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(deletedAction),
+  });
 
   res.send({ error: false, data: deletedAction });
 }

@@ -18,7 +18,11 @@ export default async function loginRoute(req, res) {
       const [user, err] = await db.getUserByEmail(body.email);
 
       if (err) {
-        console.log(err);
+        console.log({
+          name: "login_route_error",
+          user,
+          error: err,
+        });
       }
 
       const isOk = await bcrypt.compare(

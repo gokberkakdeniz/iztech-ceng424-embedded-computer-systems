@@ -7,7 +7,7 @@ export const Email = define("Email", isEmail);
 export const Uuid = define("Uuid", isUuid.v4);
 
 const TelegramActionProps = ss.object({
-  chatId: ss.size(ss.string(), 1, 999),
+  chat_id: ss.size(ss.string(), 1, 999),
   message: ss.size(ss.string(), 1, 999),
 });
 

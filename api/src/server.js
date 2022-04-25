@@ -14,7 +14,8 @@ import { sessionOptions } from "./lib/session.js";
 
 const dev = process.env.NODE_ENV !== "production";
 const port = process.env.PORT || 8001;
-console.log(port);
+const intervalPort = process.env.INTERNAL_PORT || 8001;
+
 const next = Next({ dev });
 const handle = next.getRequestHandler();
 
@@ -42,33 +43,92 @@ const createMQTTClient = () => {
       time: new Date(),
       name: sensor,
     };
+
     db.createSensorValue(sensorValueRecord).then(([, err]) => {
       if (err)
-        console.log(
-          `[SENSOR_VALUE] An error occured while inserting sensor data.`,
-          sensorValueRecord,
-          err,
-        );
+        console.error({
+          name: "mqtt_onmessage_createSensorValue",
+          record: sensorValueRecord,
+          error: err,
+        });
     });
 
     actionRunner.update(deviceId, sensor, value);
-    // console.log(`[MQTT] ${topic}: ${message.toString()}`);
+
+    // console.log({
+    //   name: "mqtt_onmessage",
+    //   topic: topic,
+    //   message: message.toString(),
+    // });
   });
 
   return client;
 };
 
 const loadActions = () =>
-  db.getActions().then(([actions, error]) => {
+  db.getActions(true).then(([actions, error]) => {
     if (error) throw error;
 
     actions.forEach((action) => {
       actionRunner.register(new ActionModel(action));
     });
-    console.log(`[ACTION] ${actions.length} actions registered.`);
+
+    console.log({
+      name: "actions_loaded",
+      count: actions.length,
+    });
 
     if (error) throw error;
   });
+
+const createInternalServer = () => {
+  const app = Express();
+
+  app.use(json());
+
+  app.get("/action-runner", (req, res) => {
+    res.send(actionRunner);
+  });
+
+  app.post("/action-runner", (req, res) => {
+    const body = req.body;
+
+    console.log({
+      name: "action-runner-put",
+      data: body,
+    });
+
+    const model = new ActionModel(body);
+
+    actionRunner.register(model);
+
+    res.send({ data: model });
+  });
+
+  app.delete("/action-runner", (req, res) => {
+    const body = req.body;
+
+    console.log({
+      name: "action-runner-delete",
+      data: body,
+    });
+
+    const model = new ActionModel(body);
+
+    actionRunner.unregister(model);
+
+    res.send({ data: model });
+  });
+
+  return app.listen(intervalPort, (err) => {
+    if (err) throw err;
+
+    console.log({
+      name: "internal_server_started",
+      url: "http://localhost:" + intervalPort,
+    });
+  });
+};
 
 const createServer = () => {
   const app = Express();
@@ -76,16 +136,17 @@ const createServer = () => {
   app.use(json());
   app.use(ironSession(sessionOptions));
 
-  // add custom path here
-  // server.post('/request/custom', custom);
-
   app.all("*", (req, res) => {
     return handle(req, res);
   });
 
   return app.listen(port, (err) => {
     if (err) throw err;
-    console.log("Ready on http://localhost:" + port);
+
+    console.log({
+      name: "server_started",
+      url: "http://localhost:" + port,
+    });
   });
 };
 
@@ -100,7 +161,10 @@ const createWebSocketServer = (server) => {
     const params = new URLSearchParams(req.url.substring(4));
     const deviceId = params.get("deviceId");
 
-    console.log(`[WS] subscribed to ${deviceId}`);
+    console.log({
+      name: "ws_subscribed",
+      deviceId: deviceId,
+    });
 
     const callback = (name, value) => {
       ws.send(JSON.stringify({ name, value }));
@@ -109,12 +173,20 @@ const createWebSocketServer = (server) => {
     actionRunner.addUpdateListener(deviceId, callback);
 
     ws.on("message", (data) => {
-      console.log(`[WS] message from  ${deviceId}: ${data}`);
+      console.log({
+        name: "ws_onmessage",
+        deviceId: deviceId,
+        message: data,
+      });
     });
 
     ws.on("close", () => {
       actionRunner.removeUpdateListener(deviceId, callback);
-      console.log(`[WS] unsubscribed #${deviceId}`);
+
+      console.log({
+        name: "ws_unsubscribed",
+        deviceId: deviceId,
+      });
     });
   });
 
@@ -128,8 +200,13 @@ const createWebSocketServer = (server) => {
       req.session = { ...(req.session || {}), ...unsealed };
 
       if (!req.session.user) {
+        console.log({
+          name: "ws_unauthorized",
+        });
+
         socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
         socket.destroy();
+
         return;
       }
 
@@ -141,6 +218,8 @@ const createWebSocketServer = (server) => {
 };
 
 next.prepare().then(async () => {
+  createInternalServer();
+
   const server = createServer();
   createWebSocketServer(server);
 
