@@ -11,15 +11,15 @@ const pool = new pg.Pool({
 
 // TODO: use transaction when appropriate
 export default {
-  query: (text, params) => pool.query(text, params),
+  query: (text, params, client = null) => (client ?? pool).query(text, params),
   // Helpers
-  queryAll: (text, params) =>
-    pool
-      .query(text, params)
+  queryAll: (text, params, client = null) =>
+    (client ?? pool)
+      .query(text, params, (client = null))
       .then((r) => [r.rows, null])
       .catch((e) => [null, e]),
-  queryOne: (text, params) =>
-    pool
+  queryOne: (text, params, client = null) =>
+    (client ?? pool)
       .query(text, params)
       .then((r) => [r.rows[0], null])
       .catch((e) => [null, e]),
@@ -146,18 +146,78 @@ export default {
 
     return [actionResult, actionError];
   },
-  updateAction: function (action) {
+  updateAction: async function (action) {
     const updatebleFields = ["name", "type", "condition", "waitFor"];
     const fieldsToBeUpdated = Object.keys(action).filter((column) =>
       updatebleFields.includes(column),
     );
 
-    return this.queryOne(
-      `UPDATE actions SET ${fieldsToBeUpdated.map(
-        (column, index) => `${snakeCase(column)} = $${index + 2}`,
-      )} WHERE id = $1 RETURNING *`,
-      [action.id, ...fieldsToBeUpdated.map((column) => action[column])],
-    );
+    const client = await pool.connect();
+    let result = null;
+    let err = null;
+    try {
+      await client.query("BEGIN");
+
+      const [updatedAction, updatedActionErr] = await this.queryOne(
+        `UPDATE actions SET ${fieldsToBeUpdated.map(
+          (column, index) => `${snakeCase(column)} = $${index + 2}`,
+        )} WHERE id = $1 RETURNING *`,
+        [action.id, ...fieldsToBeUpdated.map((column) => action[column])],
+        client,
+      );
+
+      if (updatedActionErr) throw updatedActionErr;
+
+      const [, deletedActionPropsErr] = await this.queryAll(
+        `DELETE FROM action_properties * WHERE action_id = $1`,
+        [action.id],
+        client,
+      );
+
+      if (deletedActionPropsErr) throw deletedActionPropsErr;
+
+      const actionPropsEntries = Object.entries(action.props);
+      const [actionPropsResult, actionPropsError] = await this.queryAll(
+        `INSERT INTO action_properties VALUES ${actionPropsEntries
+          .map((_, i) => `($${i * 3 + 1}, $${i * 3 + 2}, $${i * 3 + 3})`)
+          .join(",")} RETURNING *`,
+        [
+          ...actionPropsEntries.flatMap(([name, value]) => [
+            action.id,
+            name,
+            value,
+          ]),
+        ],
+        client,
+      );
+
+      if (actionPropsError) throw actionPropsError;
+
+      await client.query("COMMIT");
+
+      updatedAction.props = {};
+      actionPropsResult.forEach((prop) => {
+        const { name, value } = prop;
+        if (name in updatedAction.props) {
+          if (Array.isArray(updatedAction.props[name])) {
+            updatedAction.props[name].push(value);
+          } else {
+            updatedAction.props[name] = [updatedAction.props[name], value];
+          }
+        } else {
+          updatedAction.props[name] = value;
+        }
+      });
+
+      result = updatedAction;
+    } catch (e) {
+      await client.query("ROLLBACK");
+      err = e;
+    } finally {
+      client.release();
+    }
+
+    return [result, err];
   },
   // SensorValues
   createSensorValue: function (sensorValue) {
