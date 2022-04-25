@@ -9,10 +9,13 @@ function DeviceLivePage() {
   useEffect(() => {
     if (!query.deviceId) return;
 
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+
     const ws = new WebSocket(
-      `ws://${window.location.host}/ws?deviceId=${query.deviceId}`,
+      `${protocol}://${window.location.host}/ws?deviceId=${query.deviceId}`,
     );
 
+    ws.onopen = console.log;
     ws.onerror = console.error;
     ws.onmessage = (event) => {
       const { name, value } = JSON.parse(event.data);
