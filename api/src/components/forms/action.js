@@ -168,7 +168,7 @@ function ActionForm({
           defaultValue={data.condition}
         />
 
-        <Popover className="">
+        <Popover className="relative">
           <Popover.Button
             as={Button}
             className="my-2 mr-0.5 w-8 shrink-0"
