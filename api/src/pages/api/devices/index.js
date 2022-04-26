@@ -1,4 +1,5 @@
 import db from "../../../lib/db";
+import logger from "../../../lib/logger";
 
 async function createDevice(req, res) {
   res.status(200).send({ error: false, message: "OK createDevice" });
@@ -8,7 +9,7 @@ async function getDevices(req, res) {
   const [devices, err] = await db.getDevicesByOwnerId(req.session.user.id);
 
   if (err) {
-    console.log({
+    logger.error({
       name: "get_devices_error",
       user_id: req.session.user.id,
       error: err,

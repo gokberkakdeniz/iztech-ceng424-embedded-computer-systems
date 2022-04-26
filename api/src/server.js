@@ -9,6 +9,7 @@ import { unsealData } from "iron-session";
 import { WebSocketServer } from "ws";
 import cookie from "cookie";
 import { actionRunner, ActionModel } from "./lib/action.js";
+import logger from "./lib/logger.js";
 import db from "./lib/db.js";
 import { sessionOptions } from "./lib/session.js";
 
@@ -46,7 +47,7 @@ const createMQTTClient = () => {
 
     db.createSensorValue(sensorValueRecord).then(([, err]) => {
       if (err)
-        console.error({
+        logger.error({
           name: "mqtt_onmessage_createSensorValue",
           record: sensorValueRecord,
           error: err,
@@ -55,7 +56,7 @@ const createMQTTClient = () => {
 
     actionRunner.update(deviceId, sensor, value);
 
-    // console.log({
+    // logger.info({
     //   name: "mqtt_onmessage",
     //   topic: topic,
     //   message: message.toString(),
@@ -73,7 +74,7 @@ const loadActions = () =>
       actionRunner.register(new ActionModel(action));
     });
 
-    console.log({
+    logger.info({
       name: "actions_loaded",
       count: actions.length,
     });
@@ -93,7 +94,7 @@ const createInternalServer = () => {
   app.post("/action-runner", (req, res) => {
     const body = req.body;
 
-    console.log({
+    logger.info({
       name: "action-runner-put",
       data: body,
     });
@@ -108,7 +109,7 @@ const createInternalServer = () => {
   app.delete("/action-runner", (req, res) => {
     const body = req.body;
 
-    console.log({
+    logger.info({
       name: "action-runner-delete",
       data: body,
     });
@@ -123,7 +124,7 @@ const createInternalServer = () => {
   return app.listen(intervalPort, (err) => {
     if (err) throw err;
 
-    console.log({
+    logger.info({
       name: "internal_server_started",
       url: "http://localhost:" + intervalPort,
     });
@@ -143,7 +144,7 @@ const createServer = () => {
   return app.listen(port, (err) => {
     if (err) throw err;
 
-    console.log({
+    logger.info({
       name: "server_started",
       url: "http://localhost:" + port,
     });
@@ -161,7 +162,7 @@ const createWebSocketServer = (server) => {
     const params = new URLSearchParams(req.url.substring(4));
     const deviceId = params.get("deviceId");
 
-    console.log({
+    logger.info({
       name: "ws_subscribed",
       deviceId: deviceId,
     });
@@ -173,7 +174,7 @@ const createWebSocketServer = (server) => {
     actionRunner.addUpdateListener(deviceId, callback);
 
     ws.on("message", (data) => {
-      console.log({
+      logger.info({
         name: "ws_onmessage",
         deviceId: deviceId,
         message: data,
@@ -183,7 +184,7 @@ const createWebSocketServer = (server) => {
     ws.on("close", () => {
       actionRunner.removeUpdateListener(deviceId, callback);
 
-      console.log({
+      logger.info({
         name: "ws_unsubscribed",
         deviceId: deviceId,
       });
@@ -200,7 +201,7 @@ const createWebSocketServer = (server) => {
       req.session = { ...(req.session || {}), ...unsealed };
 
       if (!req.session.user) {
-        console.log({
+        logger.info({
           name: "ws_unauthorized",
         });
 

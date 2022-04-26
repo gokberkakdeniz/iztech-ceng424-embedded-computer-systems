@@ -1,6 +1,7 @@
 import * as ss from "superstruct";
 import * as sse from "../../../lib/validation";
 import db from "../../../lib/db";
+import logger from "../../../lib/logger";
 import bcrypt from "bcrypt";
 
 const LoginBody = ss.object({
@@ -18,7 +19,7 @@ export default async function loginRoute(req, res) {
       const [user, err] = await db.getUserByEmail(body.email);
 
       if (err) {
-        console.log({
+        logger.error({
           name: "login_route_error",
           user,
           error: err,

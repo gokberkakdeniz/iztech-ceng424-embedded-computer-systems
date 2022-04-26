@@ -1,4 +1,5 @@
 import db from "../../../../lib/db";
+import logger from "../../../../lib/logger";
 
 async function editDevice(req, res) {
   res.send({ error: false, message: "OK editDevice" });
@@ -12,7 +13,7 @@ async function getDevice(req, res) {
   const [device, err] = await db.getDeviceById(req.query.deviceId);
 
   if (err) {
-    console.log(err);
+    logger.error(err);
     return res.send({ error: true, message: "unknown error." });
   }
 
@@ -33,7 +34,7 @@ async function deleteDevice(req, res) {
   const [device, err] = await db.getDeviceById(req.query.deviceId);
 
   if (err) {
-    console.log({
+    logger.error({
       name: "delete_device_error_get",
       error: err,
       device_id: req.query.deviceId,
@@ -49,7 +50,7 @@ async function deleteDevice(req, res) {
   const [deletedDevice, deleteErr] = await db.deleteDeviceById(device.id);
 
   if (deleteErr) {
-    console.log({
+    logger.error({
       name: "delete_device_error_delete",
       error: err,
       device_id: req.query.deviceId,

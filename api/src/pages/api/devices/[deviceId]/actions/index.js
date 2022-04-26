@@ -2,6 +2,7 @@ import db from "../../../../../lib/db";
 import * as ss from "superstruct";
 import * as uuid from "uuid";
 import { ActionBody } from "../../../../../lib/validation";
+import logger from "../../../../../lib/logger";
 
 async function createAction(req, res) {
   if (req.query.deviceId?.length !== 8) {
@@ -20,7 +21,7 @@ async function createAction(req, res) {
     const [action, err] = await db.createAction(body);
 
     if (err) {
-      console.log({
+      logger.error({
         name: "create_action_error",
         error: err,
       });
@@ -48,7 +49,7 @@ async function getActions(req, res) {
   const [device, deviceErr] = await db.getDeviceById(req.query.deviceId);
 
   if (deviceErr) {
-    console.log({
+    logger.error({
       name: "get_actions_err",
       error: deviceErr,
     });
@@ -65,7 +66,7 @@ async function getActions(req, res) {
   );
 
   if (actionsErr) {
-    console.log({
+    logger.error({
       name: "get_actions_err",
       error: actionsErr,
     });

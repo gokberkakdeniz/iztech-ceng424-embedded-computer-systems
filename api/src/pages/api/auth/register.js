@@ -4,6 +4,7 @@ import * as ss from "superstruct";
 
 import * as sse from "../../../lib/validation";
 import db from "../../../lib/db";
+import logger from "../../../lib/logger";
 
 const RegisterBody = ss.object({
   email: sse.Email,
@@ -33,7 +34,7 @@ export default async function registerRoute(req, res) {
             .status(403)
             .send({ error: true, message: "user already registered." });
         } else {
-          console.log({
+          logger.error({
             name: "register_route_error",
             user,
             error: err,

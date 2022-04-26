@@ -1,4 +1,5 @@
 import db from "../../../../../lib/db";
+import logger from "../../../../../lib/logger";
 import * as isUuid from "is-uuid";
 import * as ss from "superstruct";
 import { ActionBody } from "../../../../../lib/validation";
@@ -19,7 +20,7 @@ async function editAction(req, res) {
   if (!action) {
     return res.send({ error: true, message: "action not found." });
   } else if (actionErr) {
-    console.log({
+    logger.error({
       name: "edit_action_error",
       error: actionErr,
     });
@@ -35,7 +36,7 @@ async function editAction(req, res) {
   if (!device) {
     return res.send({ error: true, message: "device not found." });
   } else if (deviceErr) {
-    console.log({
+    logger.error({
       name: "edit_action_error",
       error: deviceErr,
     });
@@ -56,7 +57,7 @@ async function editAction(req, res) {
   const [updatedAction, updatedActionErr] = await db.updateAction(body);
 
   if (updatedActionErr) {
-    console.log({
+    logger.error({
       name: "edit_action_error",
       error: updatedActionErr,
     });
@@ -88,7 +89,7 @@ async function getAction(req, res) {
   if (!action) {
     return res.send({ error: true, message: "not found" });
   } else if (actionErr) {
-    console.log({
+    logger.error({
       name: "get_action_error",
       error: actionErr,
     });
@@ -99,7 +100,7 @@ async function getAction(req, res) {
   const [device, deviceErr] = await db.getDeviceById(action.device_id);
 
   if (deviceErr) {
-    console.log({
+    logger.error({
       name: "get_action_error",
       error: deviceErr,
     });
@@ -120,7 +121,7 @@ async function deleteAction(req, res) {
   const [action, err] = await db.getActionById(req.query.actionId);
 
   if (err) {
-    console.log({
+    logger.error({
       name: "delete_action_error",
       error: err,
     });
@@ -132,7 +133,7 @@ async function deleteAction(req, res) {
 
   const [device, deviceErr] = await db.getDeviceById(action.device_id);
   if (deviceErr) {
-    console.log({
+    logger.error({
       name: "delete_action_error",
       error: deviceErr,
     });
@@ -145,7 +146,7 @@ async function deleteAction(req, res) {
   const [deletedAction, deleteErr] = await db.deleteActionById(action.id);
 
   if (deleteErr) {
-    console.log({
+    logger.error({
       name: "delete_action_error",
       error: deleteErr,
     });

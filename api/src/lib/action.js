@@ -1,5 +1,6 @@
 import { compileExpression } from "filtrex";
 import db from "./db.js";
+import logger from "./logger.js";
 
 export class Action {
   constructor() {}
@@ -142,7 +143,7 @@ export class ActionModel {
           [this.triggeredAt, this.id],
         );
 
-        console.log({
+        logger.error({
           name: "action_triggered",
           result: result,
           action: this.dump(),
@@ -184,12 +185,12 @@ export class ActionRunner {
         this.deviceActionTable[actionModel.deviceId][actionModel.id];
       actionModel.triggeredAt = current.triggeredAt;
 
-      console.log({
+      logger.info({
         name: "action_changed",
         model: actionModel.dump(),
       });
     } else {
-      console.log({
+      logger.info({
         name: "action_registered",
         model: actionModel.dump(),
       });
@@ -203,7 +204,7 @@ export class ActionRunner {
       return;
     }
 
-    console.log({
+    logger.info({
       name: "action_unregistered",
       model: actionModel.dump(),
     });
@@ -231,7 +232,7 @@ export class ActionRunner {
 
     values[sensorName] = sensorValue;
 
-    // console.log({
+    // logger.info({
     //   name: "action_runner_update",
     //   deviceId,
     //   sensorName,
