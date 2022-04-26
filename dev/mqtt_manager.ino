@@ -65,6 +65,8 @@ void MQTTManager::callback(char* topic, byte* payload, unsigned int length) {
 }
 
 bool MQTTManager::init() {
+  if (WiFi.status() != WL_CONNECTED) return false;
+  
   IPAddress resolvedIP;
   if (!WiFi.hostByName(this->address.c_str(), resolvedIP)) {
     Serial.println("MQTTManager@init :: address could not resolved");
@@ -81,6 +83,8 @@ bool MQTTManager::init() {
 }
 
 bool MQTTManager::loop() {
+  if (WiFi.status() != WL_CONNECTED) return false;
+
   bool isConnected = this->mqttClient.connected();
   if (!isConnected) {
     isConnected = mqttClient.connect(clientId, this->username.c_str(), this->password.c_str());

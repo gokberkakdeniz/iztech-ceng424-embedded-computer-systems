@@ -17,7 +17,7 @@
 
 
 
-
+// ====================================================================================================
 #define NOTE_B0  31
 #define NOTE_C1  33
 #define NOTE_CS1 35
@@ -108,10 +108,6 @@
 #define NOTE_D8  4699
 #define NOTE_DS8 4978
 #define REST      0
-
-
-
-
 #define buzzer D3
 // change this to make the song slower or faster
 int tempo = 180;
@@ -134,6 +130,33 @@ int notes = sizeof(melody) / sizeof(melody[0]) / 2;
 int wholenote = (60000 * 4) / tempo;
 int divider = 0, noteDuration = 0;
 
+void startMusic() {
+  // iterate over the notes of the melody.
+  // Remember, the array is twice the number of notes (notes + durations)
+  for (int thisNote = 0; thisNote < notes * 2; thisNote = thisNote + 2) {
+
+    // calculates the duration of each note
+    divider = melody[thisNote + 1];
+    if (divider > 0) {
+      // regular note, just proceed
+      noteDuration = (wholenote) / divider;
+    } else if (divider < 0) {
+      // dotted notes are represented with negative durations!!
+      noteDuration = (wholenote) / abs(divider);
+      noteDuration *= 1.5; // increases the duration in half for dotted notes
+    }
+
+    // we only play the note for 90% of the duration, leaving 10% as a pause
+    tone(buzzer, melody[thisNote], noteDuration * 0.9);
+
+    // Wait for the specief duration before playing the next note.
+    delay(noteDuration);
+
+    // stop the waveform generation before the next note.
+    noTone(buzzer);
+  }
+}
+// ====================================================================================================
 
 
 DHT dht(DHTPIN, DHTTYPE);
@@ -166,44 +189,20 @@ void setup() {
   accessPoint.load();
   wifiManager.load();
   mqttManager.load();
-
+  
   if (wifiManager.init()) {
-    if (mqttManager.init()) {
+    if (!mqttManager.init()) {
       Serial.println("mqtt connection fail");
     }
   } else {
     Serial.println("wifi connection fail");
+    WiFi.disconnect(true);
     accessPoint.init();
   }
-
+  
   server.start();
 
-
-
-  // iterate over the notes of the melody.
-  // Remember, the array is twice the number of notes (notes + durations)
-  for (int thisNote = 0; thisNote < notes * 2; thisNote = thisNote + 2) {
-
-    // calculates the duration of each note
-    divider = melody[thisNote + 1];
-    if (divider > 0) {
-      // regular note, just proceed
-      noteDuration = (wholenote) / divider;
-    } else if (divider < 0) {
-      // dotted notes are represented with negative durations!!
-      noteDuration = (wholenote) / abs(divider);
-      noteDuration *= 1.5; // increases the duration in half for dotted notes
-    }
-
-    // we only play the note for 90% of the duration, leaving 10% as a pause
-    tone(buzzer, melody[thisNote], noteDuration * 0.9);
-
-    // Wait for the specief duration before playing the next note.
-    delay(noteDuration);
-
-    // stop the waveform generation before the next note.
-    noTone(buzzer);
-  }
+  startMusic();
 }
 
 void sendDHTSensor() {
@@ -239,17 +238,10 @@ void sendLDRSensor() {
   mqttManager.publish("ldr/voltage", voltage);
 }
 
-//void sendCounter() {
-//  ++value;
-//  mqttManager.publish("counter", value);
-//}
-
-
-
-
-
-
-
+void sendCounter() {
+  ++value;
+  mqttManager.publish("counter", value);
+}
 
 void loop() {  
   if (shouldReset) {
@@ -264,42 +256,6 @@ void loop() {
     sendDHTSensor();
     sendLDRSensor();
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//  int sensorValue = analogRead(A0);   // read the input on analog pin 0
-//  Serial.println(sensorValue);
 
   delay(5000);
 }

@@ -6,6 +6,8 @@ AccessPoint::AccessPoint()
 bool AccessPoint::init() {
   Serial.println("AccessPoint@init :: starting");
 
+  WiFi.mode(WIFI_AP);
+
   if (!WiFi.softAPConfig(this->local_ip, this->gateway, this->subnet)) {
     Serial.println("AccessPoint@inir :: softAPConfig failed");
   }
