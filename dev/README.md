@@ -1,5 +1,16 @@
 # device
 
+## requirements
+
+### data/wifi.txt
+
+    SSID
+    password123
+    192.168.1.180
+    192.168.1.1
+    255.255.255.0
+
+
 ## dependencies
 
 ### libraries
