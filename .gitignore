@@ -2,3 +2,5 @@
 sync.env
 .pnpm-debug.log
 dev/data/*.txt
+notlar.txt
+*.pdf

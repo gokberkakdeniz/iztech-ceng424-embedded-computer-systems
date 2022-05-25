@@ -6,5 +6,8 @@
   "rules": {
     "prettier/prettier": "error",
     "import/no-anonymous-default-export": "off"
+  },
+  "env": {
+    "es2016": true
   }
 }

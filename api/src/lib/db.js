@@ -310,4 +310,41 @@ export default {
     }
     return [result, null];
   },
+  getSensorTimeseries: async function (
+    deviceId,
+    { sensors = [], order = "DESC", offset = "1 day", aggregate = "avg" } = {},
+  ) {
+    let _i = 0;
+    const i = () => `$${++_i}`;
+
+    const filterBySensors = sensors.length > 0;
+
+    const inList = (op, name, length) =>
+      ` ${op} ${name} in (${new Array(length).fill(1).map(i).join(", ")})`;
+
+    const oneOf = (value, values, fallback) =>
+      values.includes(value) ? value : fallback;
+
+    const orderEscaped = oneOf(order.toUpperCase(), ["ASC", "DESC"], "DESC");
+
+    const aggregateEscaped = oneOf(
+      aggregate.toLowerCase(),
+      ["min", "max", "avg"],
+      "avg",
+    );
+
+    return this.queryAll(
+      `SELECT 
+        time_bucket(${i()}, time) as "bucket", 
+        "name", 
+        ${aggregateEscaped}(sv.value) as "value"
+       FROM sensor_values sv
+       WHERE device_id = ${i()} ${
+        filterBySensors ? inList("AND", "name", sensors.length) : ""
+      }
+       GROUP BY "bucket", "device_id", "name"
+       ORDER BY "bucket" ${orderEscaped}`,
+      [offset, deviceId, ...(filterBySensors ? sensors : [])],
+    );
+  },
 };
