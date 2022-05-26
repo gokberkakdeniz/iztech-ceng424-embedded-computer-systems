@@ -213,20 +213,18 @@ export class ActionRunner {
   }
 
   getActions(deviceId) {
-    return this.deviceActionTable[deviceId];
+    return (this.deviceActionTable[deviceId] ??= {});
   }
 
   getValues(deviceId) {
-    return this.deviceValuesTable[deviceId];
+    return (this.deviceValuesTable[deviceId] ??= {});
   }
 
   update(deviceId, sensorName, sensorValue) {
     const actions = this.getActions(deviceId);
     const values = this.getValues(deviceId);
 
-    if (!actions || !values) return;
-
-    this.callbacks.update[deviceId].forEach((cb) =>
+    (this.callbacks.update[deviceId] ??= []).forEach((cb) =>
       cb(sensorName, sensorValue),
     );
 
@@ -247,7 +245,7 @@ export class ActionRunner {
   }
 
   addUpdateListener(deviceId, callback) {
-    this.callbacks.update[deviceId].push(callback);
+    (this.callbacks.update[deviceId] ??= []).push(callback);
   }
 
   removeUpdateListener(deviceId, callback) {
