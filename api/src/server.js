@@ -36,25 +36,86 @@ const createMQTTClient = () => {
   client.on("message", function (topic, message) {
     const [deviceId, ...rest] = topic.split("/");
     const sensor = rest.join("_");
-    const value = Number.parseFloat(message);
 
-    const sensorValueRecord = {
-      deviceId,
-      value,
-      time: new Date(),
-      name: sensor,
-    };
+    if (rest.at(-1) === "error") {
+      const sensorErrorRecord = {
+        deviceId,
+        time: new Date(),
+        name: sensor.replace(/_error$/, ""),
+      };
 
-    db.createSensorValue(sensorValueRecord).then(([, err]) => {
-      if (err)
-        logger.error({
-          name: "mqtt_onmessage_createSensorValue",
-          record: sensorValueRecord,
-          error: err,
+      db.createSensorError(sensorErrorRecord).then(async ([, err]) => {
+        if (err)
+          return logger.error({
+            name: "mqtt_onmessage_createSensorError",
+            record: sensorErrorRecord,
+            error: err,
+          });
+
+        const [errCount, errCountError] = await db.getDeviceErrorCount(
+          deviceId,
+        );
+
+        if (errCountError)
+          return logger.error({
+            name: "mqtt_onmessage_getDeviceErrorCountError",
+            record: { deviceId },
+            error: errCountError,
+          });
+
+        logger.info({
+          name: "mqtt_onmessage_getDeviceErrorCount",
+          record: { deviceId, errCount },
         });
-    });
 
-    actionRunner.update(deviceId, sensor, value);
+        if (errCount > 10) {
+          logger.info({
+            name: "mqtt_onmessage_resettingDevice__toMuchError",
+            record: { deviceId, errCount },
+          });
+
+          client.publish(`${deviceId}/reset`, "", async (pubErr) => {
+            if (pubErr) {
+              return logger.error({
+                name: "mqtt_onmessage_publishResetFail",
+                record: { deviceId },
+                error: pubErr,
+              });
+            } else {
+              const [, devResetErr] = await db.createDeviceReset(deviceId);
+
+              if (devResetErr) {
+                return logger.error({
+                  name: "mqtt_onmessage_deviceResetDatabaseError",
+                  record: { deviceId },
+                  error: devResetErr,
+                });
+              }
+            }
+          });
+        }
+      });
+    } else {
+      const value = Number.parseFloat(message);
+
+      const sensorValueRecord = {
+        deviceId,
+        value,
+        time: new Date(),
+        name: sensor,
+      };
+
+      db.createSensorValue(sensorValueRecord).then(([, err]) => {
+        if (err)
+          logger.error({
+            name: "mqtt_onmessage_createSensorValue",
+            record: sensorValueRecord,
+            error: err,
+          });
+      });
+
+      actionRunner.update(deviceId, sensor, value);
+    }
 
     // logger.info({
     //   name: "mqtt_onmessage",

@@ -347,4 +347,39 @@ export default {
       [offset, deviceId, ...(filterBySensors ? sensors : [])],
     );
   },
+  // SensorErrors
+  createSensorError: function (sensorError) {
+    return this.queryOne(
+      "INSERT INTO sensor_errors VALUES ($1, $2, $3) RETURNING *",
+      [sensorError.deviceId, sensorError.time, sensorError.name],
+    );
+  },
+  getDeviceErrorCount: async function (deviceId) {
+    const time = new Date();
+    time.setMinutes(time.getMinutes() - 1);
+
+    const [lastReset, lastResetError] = await this.getLastDeviceReset(deviceId);
+
+    if (lastResetError) {
+      return [null, lastResetError];
+    }
+
+    return this.queryOne(
+      'SELECT count(*) FROM sensor_errors WHERE "device_id" = $1 and "time" > $2',
+      [deviceId, lastReset > time ? lastReset : time],
+    ).then(([res, err]) => [res?.count, err]);
+  },
+  // DeviceResets
+  createDeviceReset: function (deviceId) {
+    return this.queryOne(
+      "INSERT INTO device_resets VALUES ($1, $2) RETURNING *",
+      [deviceId, new Date()],
+    );
+  },
+  getLastDeviceReset: function (deviceId) {
+    return this.queryOne(
+      'SELECT "time" FROM device_resets WHERE "device_id" = $1 ORDER BY "time" DESC LIMIT 1',
+      [deviceId],
+    ).then(([res, err]) => [res?.time, err]);
+  },
 };

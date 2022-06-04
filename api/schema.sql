@@ -59,6 +59,24 @@ create table action_properties (
   foreign key (action_id) references actions (id) on delete cascade;
 );
 
+create table sensor_errors (
+  device_id char(8) not null,
+  time timestamp not null,
+  name varchar(256) not null,
+  foreign key (device_id) references devices (id)
+);
+
+select
+  create_hypertable('sensor_errors', 'time');
+
+create table device_resets (
+  device_id char(8) not null,
+  time timestamp not null,
+  foreign key (device_id) references devices (id)
+);
+
+select
+  create_hypertable('device_resets', 'time');
 
 -- INSERT DATA
 insert into
