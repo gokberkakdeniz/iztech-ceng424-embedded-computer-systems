@@ -369,6 +369,14 @@ export default {
       [deviceId, lastReset > time ? lastReset : time],
     ).then(([res, err]) => [res?.count, err]);
   },
+  getAllSensorErrors: function (deviceId, limit = 1000) {
+    return this.queryAll(
+      `SELECT "time", "name" FROM sensor_errors WHERE "device_id" = $1 ORDER BY "time" DESC LIMIT ${Number.parseInt(
+        new String(limit),
+      )}`,
+      [deviceId],
+    );
+  },
   // DeviceResets
   createDeviceReset: function (deviceId) {
     return this.queryOne(
@@ -381,5 +389,13 @@ export default {
       'SELECT "time" FROM device_resets WHERE "device_id" = $1 ORDER BY "time" DESC LIMIT 1',
       [deviceId],
     ).then(([res, err]) => [res?.time, err]);
+  },
+  getAllDeviceResets: function (deviceId, limit = 1000) {
+    return this.queryAll(
+      `SELECT "time" FROM device_resets WHERE "device_id" = $1 ORDER BY "time" DESC LIMIT ${Number.parseInt(
+        new String(limit),
+      )}`,
+      [deviceId],
+    ).then(([res, err]) => [res?.map((r) => r.time), err]);
   },
 };
