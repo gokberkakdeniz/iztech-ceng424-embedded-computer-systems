@@ -44,7 +44,7 @@ const createMQTTClient = () => {
         name: sensor.replace(/_error$/, ""),
       };
 
-      const [sensorErrorErr] = await db.createSensorError(sensorErrorRecord);
+      const [, sensorErrorErr] = await db.createSensorError(sensorErrorRecord);
       if (sensorErrorErr)
         return logger.error({
           name: "mqtt_onmessage_createSensorError",
