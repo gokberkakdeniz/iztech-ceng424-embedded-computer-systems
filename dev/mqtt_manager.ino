@@ -3,6 +3,7 @@
 MQTTManager::MQTTManager() {
   this->wifiClient = WiFiClient();
   this->mqttClient = PubSubClient();
+  this->is_subscribed = false;
 }
 
 bool MQTTManager::load() {
@@ -62,6 +63,11 @@ void MQTTManager::callback(char* topic, byte* payload, unsigned int length) {
       Serial.print((char)payload[i]);
   }
   Serial.println();
+
+  if (strcmp(topic+8, "reset")) {
+      Serial.printf("MQTTManager::callback :: resetting...\n");
+      shouldReset = true;
+  }
 }
 
 bool MQTTManager::init() {
@@ -87,8 +93,20 @@ bool MQTTManager::loop() {
 
   bool isConnected = this->mqttClient.connected();
   if (!isConnected) {
+    this->is_subscribed = false;
     isConnected = mqttClient.connect(clientId, this->username.c_str(), this->password.c_str());
-    Serial.printf("mqttInit :: %s\n", isConnected ? "success" : "failed");
+    Serial.printf("mqttLoop :: connection: %s\n", isConnected ? "success" : "failed");
+  }
+
+  if (!this->is_subscribed && isConnected) {
+    String topic = this->clientId + String("/reset");
+    if (this->mqttClient.subscribe(topic.c_str())) {
+      Serial.printf("mqttInit :: %s\n", isConnected ? "success" : "failed");
+      this->is_subscribed = true;
+      Serial.printf("mqttLoop :: subscription success\n");
+    } else {
+      Serial.printf("mqttLoop :: subscription failed\n");
+    }
   }
 
   this->mqttClient.loop();

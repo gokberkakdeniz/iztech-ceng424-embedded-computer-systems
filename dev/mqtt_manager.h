@@ -15,6 +15,7 @@ class MQTTManager {
     String username;
     String password;
     char clientId[9];
+    bool is_subscribed;
     PubSubClient mqttClient;
 
     MQTTManager();
