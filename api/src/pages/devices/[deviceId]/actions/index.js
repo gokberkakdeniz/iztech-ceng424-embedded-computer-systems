@@ -52,6 +52,9 @@ function ActionsPage() {
           <Table className="w-full">
             <Table.head>
               <Table.tr>
+                <Table.th colspan={5}>Actions</Table.th>
+              </Table.tr>
+              <Table.tr>
                 <Table.th>Name</Table.th>
                 <Table.th>Type</Table.th>
                 <Table.th>Last Trigger</Table.th>
@@ -98,6 +101,11 @@ function ActionsPage() {
                   </Table.td>
                 </Table.tr>
               ))}
+              {data.length === 0 && (
+                <Table.tr className="text-center">
+                  <Table.td colspan={5}>No Data</Table.td>
+                </Table.tr>
+              )}
             </Table.body>
           </Table>
           <div className="flex justify-end">
