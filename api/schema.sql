@@ -78,6 +78,20 @@ create table device_resets (
 select
   create_hypertable('device_resets', 'time');
 
+create table sensors (
+  id bigint primary key,
+  name varchar(256) not null unique,
+  type varchar(8) check (type in ('analog', 'digital'))
+);
+
+create table sensor_outputs (
+  id bigint primary key,
+  sensor_id bigint not null,
+  name varchar(256) not null,
+  foreign key (sensor_id) references sensors (id),
+  UNIQUE (sensor_id, name)
+);
+
 -- INSERT DATA
 insert into
   users
@@ -115,3 +129,17 @@ insert into
   device_topics
 values
   ('00A9F7DF', '00A9F7DF/#', 3);
+
+insert into
+  sensors
+values
+  (1,'DHT','analog'),
+  (2,'LDR','digital');
+
+insert into
+  sensor_outputs
+values
+  (1,1,'temperature'),
+  (2,1,'humidity'),
+  (3,1,'heatIndex'),
+  (4,2,'voltage');
