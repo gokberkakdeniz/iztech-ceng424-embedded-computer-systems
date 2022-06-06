@@ -256,24 +256,6 @@ const createServer = () => {
   app.use(json());
   app.use(ironSession(sessionOptions));
 
-  app.post("/sensor-values", async (req, res) => {
-    const body = req.body;
-
-    const [data, err] = await db.getLatestSensorValuesByDeviceId(body.deviceId);
-    const initialData = err ? {} : data;
-
-    const [statsData, statsErr] = await db.getSensorValueCountByDeviceId(
-      body.deviceId,
-    );
-    const statistics = statsErr ? {} : statsData;
-    statistics.__total__ = Object.values(statistics).reduce(
-      (pre, curr) => pre + curr,
-      0,
-    );
-
-    res.send({ initialData, statistics });
-  });
-
   app.all("*", (req, res) => {
     return handle(req, res);
   });

@@ -13,16 +13,15 @@ function DeviceLivePage() {
     if (!query.deviceId) return;
 
     async function fetchStat() {
-      const k = await fetch(`/sensor-values`, {
-        method: "POST",
+      const k = await fetch(`/api/devices/${query.deviceId}/values/summary`, {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ deviceId: query.deviceId }),
       }).then((res) => res.json());
 
-      setSensors(k.initialData);
-      setStatistics(k.statistics);
+      setSensors(k.data.initialData);
+      setStatistics(k.data.statistics);
       setLoading(false);
     }
     fetchStat();
