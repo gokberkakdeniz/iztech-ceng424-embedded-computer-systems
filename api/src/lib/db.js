@@ -303,22 +303,34 @@ export default {
     ]);
   },
   getSensorValueCountByDeviceId: async function (deviceId) {
-    const [sensors, sensorErr] = await this.getSensorsByDeviceId(deviceId);
-    if (sensorErr) return [sensors, sensorErr];
-    const result = {};
-    for (const sensor of sensors) {
-      const [{ value_count } = {}, valueErr] = await this.queryOne(
-        "SELECT count(*) AS value_count FROM sensor_values WHERE device_id = $1 AND name = $2",
-        [deviceId, sensor],
-      );
+    return this.queryAll(
+      "SELECT sv.name, count(*) AS value FROM sensor_values sv WHERE sv.device_id = $1 GROUP BY sv.name",
+      // "select name, value from get_sensor_value_counts($1)",
+      [deviceId],
+    ).then(([res, err]) => [
+      res?.reduce(
+        (result, { name, value }) =>
+          Object.assign(result, { [name]: Number.parseInt(value) }),
+        {},
+      ),
+      err,
+    ]);
+    // const [sensors, sensorErr] = await this.getSensorsByDeviceId(deviceId);
+    // if (sensorErr) return [sensors, sensorErr];
+    // const result = {};
+    // for (const sensor of sensors) {
+    //   const [{ value_count } = {}, valueErr] = await this.queryOne(
+    //     "SELECT count(*) AS value_count FROM sensor_values WHERE device_id = $1 AND name = $2",
+    //     [deviceId, sensor],
+    //   );
 
-      if (valueErr) {
-        return [null, valueErr];
-      }
+    //   if (valueErr) {
+    //     return [null, valueErr];
+    //   }
 
-      result[sensor] = Number.parseInt(value_count);
-    }
-    return [result, null];
+    //   result[sensor] = Number.parseInt(value_count);
+    // }
+    // return [result, null];
   },
   getSensorTimeseries: async function (
     deviceId,
