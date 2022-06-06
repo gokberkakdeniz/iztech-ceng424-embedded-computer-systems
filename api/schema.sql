@@ -113,19 +113,6 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION get_sensor_value_counts(dev_id char(8))
-  RETURNS TABLE (name varchar(256), value_count bigint)
-  LANGUAGE plpgsql as $$
-DECLARE 
-	svd_count integer;
-BEGIN
-	FOR sensor_name IN (SELECT DISTINCT sv.name FROM sensor_values sv WHERE sv.device_id = dev_id)
-  LOOP
-    RETURN QUERY SELECT name, count(*) AS value_count FROM sensor_values WHERE device_id = dev_id AND name = sensor_name;
-  END LOOP;
-end;
-$$;
-
-CREATE OR REPLACE FUNCTION get_sensor_value_counts(dev_id char(8))
   RETURNS TABLE (name varchar(256), value bigint)
   LANGUAGE plpgsql as $$
 DECLARE 
