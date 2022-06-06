@@ -92,6 +92,14 @@ create table sensor_outputs (
   UNIQUE (sensor_id, name)
 );
 
+create table device_sensor_outputs (
+  device_id char(8) not null,
+  sensor_output_id bigint not null,
+  foreign key (device_id) references devices (id),
+  foreign key (sensor_output_id) references sensor_outputs (id)
+);
+
+
 CREATE OR REPLACE FUNCTION get_last_sensor_values(dev_id char(8))
   RETURNS TABLE (name varchar(256), value float4)
   LANGUAGE plpgsql as $$
@@ -178,3 +186,11 @@ values
   (2,1,'humidity'),
   (3,1,'heatIndex'),
   (4,2,'voltage');
+
+insert into 
+  device_sensor_outputs
+values
+	('00A9F7DF', 1),
+	('00A9F7DF', 2),
+	('00A9F7DF', 3),
+	('00A9F7DF', 4);
