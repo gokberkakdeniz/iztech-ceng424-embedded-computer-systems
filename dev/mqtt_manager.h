@@ -1,6 +1,7 @@
 #ifndef MQTT_MANAGER_H
 #define MQTT_MANAGER_H
 
+#include "sensors.h"
 #include <Arduino.h>
 #include "LittleFS.h"
 #include <ESP8266WiFi.h>

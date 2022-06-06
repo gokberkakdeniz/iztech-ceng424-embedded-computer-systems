@@ -420,4 +420,26 @@ export default {
       [deviceId],
     ).then(([res, err]) => [res?.map((r) => r.time), err]);
   },
+  // DeviceSensors
+  getDeviceSensors: function (deviceId) {
+    return this.queryAll(
+      `select sensor_id, pin from device_sensors where device_id = $1`,
+      [deviceId],
+    ).then(([res, err]) => [
+      res?.map((r) => ({
+        sensor_id: Number.parseInt(r.sensor_id),
+        pin: Number.parseInt(r.pin),
+      })),
+      err,
+    ]);
+  },
+  getDeviceSensorOutputs: function (deviceId) {
+    return this.queryAll(
+      `select sensor_output_id from device_sensor_outputs where device_id = $1`,
+      [deviceId],
+    ).then(([res, err]) => [
+      res?.map((r) => Number.parseInt(r.sensor_output_id)),
+      err,
+    ]);
+  },
 };

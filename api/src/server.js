@@ -37,7 +37,7 @@ const createMQTTClient = () => {
 
   client.on("message", async function (topic, message) {
     const [deviceId, ...rest] = topic.split("/");
-    const sensor = rest.join("_");
+    const deviceTopic = rest.join("_");
 
     if (rest.at(-1) === "error") {
       lock
@@ -45,7 +45,7 @@ const createMQTTClient = () => {
           const sensorErrorRecord = {
             deviceId,
             time: new Date(),
-            name: sensor.replace(/_error$/, ""),
+            name: deviceTopic.replace(/_error$/, ""),
           };
 
           const [, sensorErrorErr] = await db.createSensorError(
@@ -89,7 +89,7 @@ const createMQTTClient = () => {
               });
             }
 
-            client.publish(`${deviceId}/reset`, "", async (pubErr) => {
+            client.publish(`${deviceId}/cmd/reset`, "", async (pubErr) => {
               if (pubErr) {
                 return logger.error({
                   name: "mqtt_onmessage_publishResetFail",
@@ -107,6 +107,52 @@ const createMQTTClient = () => {
             error: err,
           });
         });
+    } else if (deviceTopic === "dev_start") {
+      logger.info({
+        name: "mqtt_onmessage_devStart",
+        record: { deviceId },
+      });
+
+      const [
+        [deviceSensors, deviceSensorErr],
+        [deviceSensorOutputs, deviceSensorOutputsErr],
+      ] = await Promise.all([
+        db.getDeviceSensors(deviceId),
+        db.getDeviceSensorOutputs(deviceId),
+      ]);
+
+      if (deviceSensorOutputsErr || deviceSensorErr) {
+        // TODO: think what should we do?
+        return logger.error({
+          name: "mqtt_onmessage_start_deviceSensorOutputsErr",
+          record: { deviceId },
+          error: {
+            deviceSensorOutputsErr,
+            deviceSensorErr,
+          },
+        });
+      }
+
+      const buffer = new Uint8Array([
+        deviceSensors.length,
+        ...deviceSensors.flatMap(({ sensor_id, pin }) => [sensor_id, pin]),
+        ...deviceSensorOutputs,
+      ]);
+
+      logger.info({
+        name: "mqtt_onmessage_sensorPayload",
+        record: { deviceId, message: buffer },
+      });
+
+      client.publish(`${deviceId}/cmd/sensors`, buffer);
+    } else if (
+      deviceTopic.startsWith("dev_") ||
+      deviceTopic.startsWith("cmd_")
+    ) {
+      logger.info({
+        name: "mqtt_onmessage_deviceTopic",
+        record: { deviceId, deviceTopic },
+      });
     } else {
       const value = Number.parseFloat(message);
 
@@ -114,7 +160,7 @@ const createMQTTClient = () => {
         deviceId,
         value,
         time: new Date(),
-        name: sensor,
+        name: deviceTopic,
       };
 
       db.createSensorValue(sensorValueRecord).then(([, err]) => {
@@ -126,7 +172,7 @@ const createMQTTClient = () => {
           });
       });
 
-      actionRunner.update(deviceId, sensor, value);
+      actionRunner.update(deviceId, deviceTopic, value);
     }
 
     // logger.info({

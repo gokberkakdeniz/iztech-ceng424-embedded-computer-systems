@@ -56,17 +56,67 @@ bool MQTTManager::save() {
 }
 
 void MQTTManager::callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
-  for (int i = 0; i < length; i++) {
-      Serial.print((char)payload[i]);
-  }
-  Serial.println();
-
-  if (strcmp(topic+8, "reset")) {
+  // receives 00000000/cmd/topic
+  if (strcmp(topic+13, "reset") == 0) {
       Serial.printf("MQTTManager::callback :: resetting...\n");
       shouldReset = true;
+  } else if (strcmp(topic+13, "sensors") == 0) {
+      if (isSensorsActivated) {
+        Serial.printf("MQTTManager::callback :: sensors :: already done.\n");
+        return;
+      }
+      
+      if (length < 1) {
+        Serial.printf("MQTTManager::callback :: sensors :: invalid payload :: length=%u\n", length);
+        return;
+      }
+
+      // set sensor pins
+      byte sensor_count = payload[0];
+      for (int i = 0; i < sensor_count; i++) {
+        int index = payload[2 * i + 1];
+        if (index >= SENSORS_SIZE) {
+          Serial.printf("MQTTManager::callback :: sensors :: invalid sensor pin index :: length=%d", index);
+        } else {
+          sensorPins[index] = payload[2 * i + 2];
+        }
+      }
+
+      // debug print
+      Serial.printf("sensorPins: ");
+      for (int i = 0; i < SENSORS_SIZE; i++) {
+        Serial.printf("%d ", sensorPins[i]);
+      }
+      Serial.printf("\n");
+
+      // set sensor outputs
+      for (int i = 2 * sensor_count + 1; i < length; i++) {
+        int index = payload[i];
+        if (index >= SENSORS_OUTPUT_SIZE) {
+          Serial.printf("MQTTManager::callback :: sensors :: invalid sensor output index :: length=%d", index);
+        } else {
+          activeSensorOutputs[payload[i]] = true;
+        }
+      }
+      
+      // debug print
+      Serial.printf("activeSensorOutputs: ");
+      for (int i = 0; i < SENSORS_OUTPUT_SIZE; i++) {
+        Serial.printf("%d ", activeSensorOutputs[i] ? 1 : 0);
+      }
+      Serial.printf("\n");
+
+      // init sensors
+      setupDHT();
+      isSensorsActivated = true;
+  } else {
+      Serial.print("Message arrived [");
+      Serial.print(topic);
+      Serial.print("] ");
+      for (int i = 0; i < length; i++) {
+          Serial.print((char)payload[i]);
+      }
+      Serial.println();
   }
 }
 
@@ -99,7 +149,7 @@ bool MQTTManager::loop() {
   }
 
   if (!this->is_subscribed && isConnected) {
-    String topic = this->clientId + String("/reset");
+    String topic = this->clientId + String("/cmd/#");
     if (this->mqttClient.subscribe(topic.c_str())) {
       Serial.printf("mqttInit :: %s\n", isConnected ? "success" : "failed");
       this->is_subscribed = true;

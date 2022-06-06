@@ -99,6 +99,14 @@ create table device_sensor_outputs (
   foreign key (sensor_output_id) references sensor_outputs (id)
 );
 
+create table device_sensors (
+  device_id char(8) not null,
+  sensor_id bigint not null,
+  pin bigint not null,
+  foreign key (device_id) references devices (id),
+  foreign key (sensor_id) references sensors (id)
+);
+
 
 CREATE OR REPLACE FUNCTION get_last_sensor_values(dev_id char(8))
   RETURNS TABLE (name varchar(256), value float4)
@@ -186,6 +194,12 @@ values
   (2,1,'humidity'),
   (3,1,'heatIndex'),
   (4,2,'voltage');
+
+insert into 
+  device_sensors
+values
+	('00A9F7DF', 1, 2),
+	('00A9F7DF', 2, 0);
 
 insert into 
   device_sensor_outputs
