@@ -35,7 +35,6 @@ function DeviceLogsPage() {
 
   return (
     <>
-      <h1 className="font-bold font-mono text-center"></h1>
       <Table className="w-full">
         <Table.head>
           <Table.tr>
