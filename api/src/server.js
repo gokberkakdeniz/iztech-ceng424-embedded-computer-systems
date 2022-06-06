@@ -12,6 +12,7 @@ import { actionRunner, ActionModel } from "./lib/action.js";
 import logger from "./lib/logger.js";
 import db from "./lib/db.js";
 import { sessionOptions } from "./lib/session.js";
+import AsyncLock from "async-lock";
 
 const dev = process.env.NODE_ENV !== "production";
 const port = process.env.PORT || 8001;
@@ -21,6 +22,7 @@ const next = Next({ dev });
 const handle = next.getRequestHandler();
 
 const createMQTTClient = () => {
+  const lock = new AsyncLock();
   const client = connect(
     `mqtt://${process.env.MQTT_HOST}:${process.env.MQTT_PORT}`,
     {
@@ -38,59 +40,73 @@ const createMQTTClient = () => {
     const sensor = rest.join("_");
 
     if (rest.at(-1) === "error") {
-      const sensorErrorRecord = {
-        deviceId,
-        time: new Date(),
-        name: sensor.replace(/_error$/, ""),
-      };
+      lock
+        .acquire(`${deviceId}/error`, async () => {
+          const sensorErrorRecord = {
+            deviceId,
+            time: new Date(),
+            name: sensor.replace(/_error$/, ""),
+          };
 
-      const [, sensorErrorErr] = await db.createSensorError(sensorErrorRecord);
-      if (sensorErrorErr)
-        return logger.error({
-          name: "mqtt_onmessage_createSensorError",
-          record: sensorErrorRecord,
-          error: sensorErrorErr,
-        });
-
-      const [errCount, errCountError] = await db.getDeviceErrorCount(deviceId);
-      if (errCountError)
-        return logger.error({
-          name: "mqtt_onmessage_getDeviceErrorCountError",
-          record: { deviceId },
-          error: errCountError,
-        });
-
-      logger.info({
-        name: "mqtt_onmessage_getDeviceErrorCount",
-        record: { deviceId, errCount },
-      });
-
-      if (errCount > 10) {
-        logger.info({
-          name: "mqtt_onmessage_resettingDevice__toMuchError",
-          record: { deviceId, errCount },
-        });
-
-        client.publish(`${deviceId}/reset`, "", async (pubErr) => {
-          if (pubErr) {
+          const [, sensorErrorErr] = await db.createSensorError(
+            sensorErrorRecord,
+          );
+          if (sensorErrorErr)
             return logger.error({
-              name: "mqtt_onmessage_publishResetFail",
+              name: "mqtt_onmessage_createSensorError",
+              record: sensorErrorRecord,
+              error: sensorErrorErr,
+            });
+
+          const [errCount, errCountError] = await db.getDeviceErrorCount(
+            deviceId,
+          );
+          if (errCountError)
+            return logger.error({
+              name: "mqtt_onmessage_getDeviceErrorCountError",
               record: { deviceId },
-              error: pubErr,
+              error: errCountError,
+            });
+
+          logger.info({
+            name: "mqtt_onmessage_getDeviceErrorCount",
+            record: { deviceId, errCount },
+          });
+
+          if (errCount > 10) {
+            logger.info({
+              name: "mqtt_onmessage_resettingDevice__toMuchError",
+              record: { deviceId, errCount },
+            });
+
+            const [, devResetErr] = await db.createDeviceReset(deviceId);
+
+            if (devResetErr) {
+              return logger.error({
+                name: "mqtt_onmessage_deviceResetDatabaseError",
+                record: { deviceId },
+                error: devResetErr,
+              });
+            }
+
+            client.publish(`${deviceId}/reset`, "", async (pubErr) => {
+              if (pubErr) {
+                return logger.error({
+                  name: "mqtt_onmessage_publishResetFail",
+                  record: { deviceId },
+                  error: pubErr,
+                });
+              }
             });
           }
+        })
+        .catch((err) => {
+          logger.error({
+            name: "mqtt_onmessage_error_asyncLock",
+            record: { deviceId },
+            error: err,
+          });
         });
-      }
-    } else if (rest.at(-1) === "reset") {
-      const [, devResetErr] = await db.createDeviceReset(deviceId);
-
-      if (devResetErr) {
-        return logger.error({
-          name: "mqtt_onmessage_deviceResetDatabaseError",
-          record: { deviceId },
-          error: devResetErr,
-        });
-      }
     } else {
       const value = Number.parseFloat(message);
 
