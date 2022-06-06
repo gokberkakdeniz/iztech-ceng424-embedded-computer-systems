@@ -10,6 +10,7 @@ import {
   PlusIcon,
   BellIcon,
   TableIcon,
+  ChartBarIcon,
 } from "@heroicons/react/solid";
 
 function DevicesPage() {
@@ -24,9 +25,9 @@ function DevicesPage() {
           <Table className="w-full">
             <Table.head>
               <Table.tr>
-                <Table.th>Serial Number</Table.th>
+                <Table.th className="w-72">Serial Number</Table.th>
                 <Table.th>Username</Table.th>
-                <Table.th className="w-36"></Table.th>
+                <Table.th className="w-48"></Table.th>
               </Table.tr>
             </Table.head>
 
@@ -46,6 +47,18 @@ function DevicesPage() {
                         <Link href={`/devices/${device.id}/live`} passHref>
                           <a>
                             <TableIcon className="h-4 w-4 align-middle pb-1 inline-block" />
+                          </a>
+                        </Link>
+                      </Button>
+
+                      <Button
+                        as="div"
+                        className="max-w-fit"
+                        title="Show chart data"
+                      >
+                        <Link href={`/devices/${device.id}/chart`} passHref>
+                          <a>
+                            <ChartBarIcon className="h-4 w-4 align-middle pb-1 inline-block" />
                           </a>
                         </Link>
                       </Button>
