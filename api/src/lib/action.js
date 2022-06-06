@@ -1,6 +1,7 @@
 import { compileExpression } from "filtrex";
 import db from "./db.js";
 import logger from "./logger.js";
+import MailProvider from "./mailer.js";
 
 export class Action {
   constructor() {}
@@ -70,11 +71,32 @@ export class TelegramAction extends Action {
 }
 
 export class EmailAction extends Action {
-  constructor() {
+  constructor(raw) {
     super();
+
+    this.receiverEmail = raw.to;
+    this.subject = raw.subject;
+    this.message = raw.message;
   }
 
-  run() {}
+  async run() {
+    try {
+      const response = await MailProvider.sendMail(
+        this.receiverEmail,
+        this.subject,
+        this.message,
+      );
+      return {
+        error: false,
+        data: response,
+      };
+    } catch (err) {
+      return {
+        error: true,
+        data: err,
+      };
+    }
+  }
 }
 
 export class PowerOnDeviceAction extends Action {

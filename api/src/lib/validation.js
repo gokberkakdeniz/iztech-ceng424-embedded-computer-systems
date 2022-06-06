@@ -13,6 +13,7 @@ const TelegramActionProps = ss.object({
 
 const EmailActionProps = ss.object({
   to: ss.size(ss.string(), 1, 999),
+  subject: ss.size(ss.string(), 1, 999),
   message: ss.size(ss.string(), 1, 999),
 });
 

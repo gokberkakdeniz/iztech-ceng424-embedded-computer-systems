@@ -9,6 +9,7 @@ import {
 } from "@heroicons/react/solid";
 import { useCallback, useEffect, useRef, useState } from "react";
 import fetchJSON from "../../lib/fetchJson";
+
 const renderLabel = (text, htmlFor, description) => (
   <label htmlFor={htmlFor} className="flex justify-center gap-1">
     <b>{text}</b>
@@ -96,6 +97,50 @@ function TelegramActionForm({ data = {}, token = "" }) {
   );
 }
 
+function EmailActionForm({ data = {} }) {
+  return (
+    <>
+      {renderLabel("Receiver Email", "prop__to")}
+      <Input
+        type="text"
+        placeholder="some@mail.com"
+        name="prop__to"
+        id="prop__to"
+        className="w-full"
+        required
+        autoComplete="off"
+        defaultValue={data.props?.to}
+      />
+
+      {renderLabel("Subject", "prop__subject")}
+      <Input
+        type="text"
+        placeholder="Subject"
+        name="prop__subject"
+        id="prop__subject"
+        className="w-full"
+        required
+        autoComplete="off"
+        defaultValue={data.props?.subject}
+      />
+
+      {renderLabel("Message", "prop__message")}
+      <Input
+        placeholder="Temperature is {dht_temperature}!"
+        name="prop__message"
+        id="prop__message"
+        className="w-full h-fit"
+        autoComplete="off"
+        defaultValue={data.props?.message}
+        rows="2"
+        maxLength={1000}
+        multiline
+        required
+      />
+    </>
+  );
+}
+
 function ActionForm({
   data = {},
   telegramGetChatIdToken = "",
@@ -128,7 +173,7 @@ function ActionForm({
       case "telegram":
         return <TelegramActionForm token={token} data={data} />;
       case "email":
-        return <></>;
+        return <EmailActionForm token={token} data={data} />;
       case "power_on":
         return <></>;
       default:
@@ -224,7 +269,6 @@ function ActionForm({
         <Select.Option value="email" text="Send Email" />
         <Select.Option value="power_on" text="Power On Device" />
       </Select>
-      <br />
 
       {renderAdditionalOptions(type, data, { token: telegramGetChatIdToken })}
 
