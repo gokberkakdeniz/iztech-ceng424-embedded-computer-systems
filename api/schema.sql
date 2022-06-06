@@ -92,6 +92,26 @@ create table sensor_outputs (
   UNIQUE (sensor_id, name)
 );
 
+CREATE OR REPLACE FUNCTION get_last_sensor_values(dev_id char(8))
+  RETURNS TABLE (name varchar(256), value float4)
+  LANGUAGE plpgsql as $$
+DECLARE 
+	svd_count integer;
+BEGIN
+	DROP TABLE if exists svd;
+	CREATE TEMP TABLE svd AS SELECT DISTINCT sv.name FROM sensor_values sv WHERE sv.device_id = dev_id;
+
+	SELECT count(*) into svd_count from svd;
+	
+	return QUERY SELECT sv.name, sv.value
+		FROM 
+			sensor_values sv,
+			svd
+		WHERE sv.device_id = dev_id AND sv.name = svd.name ORDER BY sv.time desc limit svd_count;
+	DROP TABLE if exists svd;
+END;
+$$;
+
 -- INSERT DATA
 insert into
   users
