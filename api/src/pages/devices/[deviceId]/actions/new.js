@@ -1,10 +1,10 @@
 import { useRouter } from "next/router";
 import ActionForm from "../../../../components/forms/action";
-import { PrivateWrapper } from "../../../../containers/wrappers";
 import db from "../../../../lib/db";
 import fetchJson from "../../../../lib/fetchJson";
 import { toast } from "react-hot-toast";
 import * as uuid from "uuid";
+import { withPrivateWrapper } from "../../../../components/withPrivateWrapper";
 
 function NewActionPage({ sensorNames, telegramGetChatIdToken }) {
   const { query, push, asPath } = useRouter();
@@ -39,14 +39,14 @@ function NewActionPage({ sensorNames, telegramGetChatIdToken }) {
   };
 
   return (
-    <PrivateWrapper>
+    <>
       <ActionForm
         sensorNames={sensorNames}
         submitText={"Create"}
         onSubmit={handleSubmit}
         telegramGetChatIdToken={telegramGetChatIdToken}
       />
-    </PrivateWrapper>
+    </>
   );
 }
 
@@ -61,4 +61,4 @@ export async function getServerSideProps(context) {
   return { props: { sensorNames, telegramGetChatIdToken } };
 }
 
-export default NewActionPage;
+export default withPrivateWrapper(NewActionPage);

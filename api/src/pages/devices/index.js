@@ -3,7 +3,6 @@ import Link from "next/link";
 import ErrorComponent from "../../components/error";
 import Loading from "../../components/loading";
 import Table from "../../components/table";
-import { PrivateWrapper } from "../../containers/wrappers";
 import Button from "../../components/button";
 import {
   PencilAltIcon,
@@ -11,13 +10,15 @@ import {
   BellIcon,
   TableIcon,
   ChartBarIcon,
+  TicketIcon,
 } from "@heroicons/react/solid";
+import { withPrivateWrapper } from "../../components/withPrivateWrapper";
 
 function DevicesPage() {
   const { data, error } = useSWR(`/api/devices`);
 
   return (
-    <PrivateWrapper>
+    <>
       {!data && !error && <Loading />}
       {error && <ErrorComponent description={error.message} />}
       {Array.isArray(data) && (
@@ -27,7 +28,7 @@ function DevicesPage() {
               <Table.tr>
                 <Table.th className="w-72">Serial Number</Table.th>
                 <Table.th>Username</Table.th>
-                <Table.th className="w-48"></Table.th>
+                <Table.th className="w-64"></Table.th>
               </Table.tr>
             </Table.head>
 
@@ -75,6 +76,14 @@ function DevicesPage() {
                         </Link>
                       </Button>
 
+                      <Button as="div" className="max-w-fit" title="Show logs">
+                        <Link href={`/devices/${device.id}/logs`} passHref>
+                          <a>
+                            <TicketIcon className="h-4 w-4 align-middle pb-1 inline-block" />
+                          </a>
+                        </Link>
+                      </Button>
+
                       <Button
                         as="div"
                         className="max-w-fit"
@@ -102,8 +111,8 @@ function DevicesPage() {
           </div>
         </>
       )}
-    </PrivateWrapper>
+    </>
   );
 }
 
-export default DevicesPage;
+export default withPrivateWrapper(DevicesPage);

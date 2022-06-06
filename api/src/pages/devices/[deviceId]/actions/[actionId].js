@@ -1,12 +1,12 @@
 import useSWR from "swr";
 import { useRouter } from "next/router";
-import { PrivateWrapper } from "../../../../containers/wrappers";
 import db from "../../../../lib/db";
 import ActionForm from "../../../../components/forms/action";
 import Loading from "../../../../components/loading";
 import ErrorComponent from "../../../../components/error";
 import fetchJson from "../../../../lib/fetchJson";
 import { toast } from "react-hot-toast";
+import { withPrivateWrapper } from "../../../../components/withPrivateWrapper";
 
 function ActionPage({ sensorNames, telegramGetChatIdToken }) {
   const { query } = useRouter();
@@ -48,7 +48,7 @@ function ActionPage({ sensorNames, telegramGetChatIdToken }) {
   };
 
   return (
-    <PrivateWrapper>
+    <>
       {!data && !error && <Loading />}
       {error && <ErrorComponent description={error.message} />}
       {data && (
@@ -60,7 +60,7 @@ function ActionPage({ sensorNames, telegramGetChatIdToken }) {
           telegramGetChatIdToken={telegramGetChatIdToken}
         />
       )}
-    </PrivateWrapper>
+    </>
   );
 }
 
@@ -75,4 +75,4 @@ export async function getServerSideProps(context) {
   return { props: { sensorNames, telegramGetChatIdToken } };
 }
 
-export default ActionPage;
+export default withPrivateWrapper(ActionPage);

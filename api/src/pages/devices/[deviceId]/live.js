@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { PrivateWrapper } from "../../../containers/wrappers";
 import Loading from "../../../components/loading";
+import { withPrivateWrapper } from "../../../components/withPrivateWrapper";
 
 function DeviceLivePage() {
   const { query } = useRouter();
@@ -47,7 +47,7 @@ function DeviceLivePage() {
   }, [query.deviceId, setSensors, statistics]);
 
   return (
-    <PrivateWrapper>
+    <>
       {loading && <Loading />}
       <div className="grid md:grid-cols-4 grid-cols-2 gap-1">
         {!loading &&
@@ -87,8 +87,8 @@ function DeviceLivePage() {
           </>
         )}
       </div>
-    </PrivateWrapper>
+    </>
   );
 }
 
-export default DeviceLivePage;
+export default withPrivateWrapper(DeviceLivePage);

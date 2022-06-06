@@ -1,7 +1,6 @@
 import useSWR from "swr";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { PrivateWrapper } from "../../../../containers/wrappers";
 import Loading from "../../../../components/loading";
 import ErrorComponent from "../../../../components/error";
 import Table from "../../../../components/table";
@@ -10,6 +9,7 @@ import Button from "../../../../components/button";
 import { useCallback } from "react";
 import fetchJson from "../../../../lib/fetchJson";
 import { toast } from "react-hot-toast";
+import { withPrivateWrapper } from "../../../../components/withPrivateWrapper";
 
 function ActionsPage() {
   const { query } = useRouter();
@@ -44,7 +44,7 @@ function ActionsPage() {
   );
 
   return (
-    <PrivateWrapper>
+    <>
       {!data && !error && <Loading />}
       {error && <ErrorComponent description={error.message} />}
       {Array.isArray(data) && (
@@ -118,8 +118,8 @@ function ActionsPage() {
           </div>
         </>
       )}
-    </PrivateWrapper>
+    </>
   );
 }
 
-export default ActionsPage;
+export default withPrivateWrapper(ActionsPage);

@@ -1,11 +1,11 @@
-import { PrivateWrapper } from "../../containers/wrappers";
+import { withPrivateWrapper } from "../../components/withPrivateWrapper";
 
 function NewDevicePage() {
   /**
    * TODO(@ebkaraca): create a new device.
    * i think as same as edit page.
    */
-  return <PrivateWrapper>new device</PrivateWrapper>;
+  return <>new device</>;
 }
 
-export default NewDevicePage;
+export default withPrivateWrapper(NewDevicePage);

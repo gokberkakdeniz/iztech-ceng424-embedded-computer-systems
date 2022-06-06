@@ -1,6 +1,5 @@
 import { useRouter } from "next/router";
 import { useMemo } from "react";
-import { PrivateWrapper } from "../../../containers/wrappers";
 import useSWR from "swr";
 import {
   Chart as ChartJS,
@@ -15,6 +14,7 @@ import {
 import { Line } from "react-chartjs-2";
 import ErrorComponent from "../../../components/error";
 import Loading from "../../../components/loading";
+import { withPrivateWrapper } from "../../../components/withPrivateWrapper";
 
 ChartJS.register(
   CategoryScale,
@@ -115,12 +115,12 @@ function DeviceChartPage() {
   }, [data]);
 
   return (
-    <PrivateWrapper>
+    <>
       {!data && !error && <Loading />}
       {chartData && <Line options={options} data={chartData} />}
       {error && <ErrorComponent description={error.message} />}
-    </PrivateWrapper>
+    </>
   );
 }
 
-export default DeviceChartPage;
+export default withPrivateWrapper(DeviceChartPage);

@@ -5,7 +5,7 @@ import Loading from "../../../components/loading";
 import Table from "../../../components/table";
 import { withPrivateWrapper } from "../../../components/withPrivateWrapper";
 
-function DevicePage() {
+function DeviceLogsPage() {
   const { query } = useRouter();
 
   const { data: deviceResetsData, error: deviceResetsError } = useSWR(
@@ -111,4 +111,4 @@ function DevicePage() {
   );
 }
 
-export default withPrivateWrapper(DevicePage);
+export default withPrivateWrapper(DeviceLogsPage);
