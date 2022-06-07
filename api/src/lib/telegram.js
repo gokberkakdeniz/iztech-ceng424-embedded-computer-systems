@@ -1,4 +1,4 @@
-export class TelegramChatIdDictionary {
+class TelegramChatIdDictionary {
   constructor() {
     this.dict = {};
   }
@@ -14,4 +14,4 @@ export class TelegramChatIdDictionary {
   }
 }
 
-export default new TelegramChatIdDictionary();
+module.exports = new TelegramChatIdDictionary();

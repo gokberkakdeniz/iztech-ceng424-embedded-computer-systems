@@ -1,3 +1,3 @@
 import pino from "pino";
 
-export default pino({});
+module.exports = pino({});

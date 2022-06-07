@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 
-export class MailProvider {
+ class MailProvider {
   constructor() {
     this.transporter = nodemailer.createTransport({
       host: "smtp-mail.outlook.com",
@@ -23,4 +23,4 @@ export class MailProvider {
   };
 }
 
-export default new MailProvider();
+module.exports = new MailProvider();

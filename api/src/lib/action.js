@@ -1,9 +1,9 @@
-import { compileExpression } from "filtrex";
-import db from "./db.js";
-import logger from "./logger.js";
-import MailProvider from "./mailer.js";
+const { compileExpression } = require("filtrex");
+const db  = require( "./db.js");
+const logger  = require( "./logger.js");
+const MailProvider = require("./mailer.js");
 
-export class Action {
+class Action {
   constructor() {}
 
   run() {
@@ -11,7 +11,7 @@ export class Action {
   }
 }
 
-export class TelegramAction extends Action {
+class TelegramAction extends Action {
   constructor(raw) {
     super();
 
@@ -70,7 +70,7 @@ export class TelegramAction extends Action {
   }
 }
 
-export class EmailAction extends Action {
+class EmailAction extends Action {
   constructor(raw) {
     super();
 
@@ -99,7 +99,7 @@ export class EmailAction extends Action {
   }
 }
 
-export class PowerOnDeviceAction extends Action {
+class PowerOnDeviceAction extends Action {
   constructor() {
     super();
   }
@@ -107,7 +107,7 @@ export class PowerOnDeviceAction extends Action {
   run() {}
 }
 
-export class WebHookAction extends Action {
+class WebHookAction extends Action {
   constructor() {
     super();
   }
@@ -121,7 +121,7 @@ const actionTypeClassMap = {
   power_on: PowerOnDeviceAction,
 };
 
-export class ActionModel {
+class ActionModel {
   constructor(raw) {
     this.id = raw.id;
     this.name = raw.name;
@@ -184,7 +184,7 @@ export class ActionModel {
   }
 }
 
-export class ActionRunner {
+class ActionRunner {
   constructor() {
     this.deviceActionTable = {};
     this.deviceValuesTable = {};
@@ -247,7 +247,13 @@ export class ActionRunner {
     const values = this.getValues(deviceId);
 
     (this.callbacks.update[deviceId] ??= []).forEach((cb) =>
-      cb(sensorName, sensorValue),
+      {
+        console.log({
+          "name": "actupdate",
+          cb, sensorName, sensorValue
+        });
+        cb(sensorName, sensorValue);
+      }
     );
 
     values[sensorName] = sensorValue;
@@ -280,4 +286,15 @@ export class ActionRunner {
   }
 }
 
-export const actionRunner = new ActionRunner();
+const actionRunner = new ActionRunner();
+
+module.exports = {
+  Action,
+  TelegramAction,
+  EmailAction,
+  PowerOnDeviceAction,
+  WebHookAction,
+  ActionModel,
+  ActionRunner,
+  actionRunner
+}

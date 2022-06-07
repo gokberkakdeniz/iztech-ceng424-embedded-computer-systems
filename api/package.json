@@ -4,9 +4,9 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "dev": "node -r @swc-node/register .",
+    "dev": "node .",
     "build": "next build",
-    "start": "NODE_ENV=production node -r @swc-node/register .",
+    "start": "NODE_ENV=production node .",
     "lint": "next lint"
   },
   "author": "",
@@ -28,7 +28,7 @@
     "is-email": "^1.0.2",
     "is-uuid": "^1.0.2",
     "mqtt": "^4.3.7",
-    "next": "^12.1.4",
+    "next": "12.1.6",
     "nodemailer": "^6.7.5",
     "pg": "^8.7.3",
     "pino": "^7.11.0",

@@ -1,5 +1,5 @@
-import pg from "pg";
-import { snakeCase } from "snake-case";
+const pg = require("pg");
+const { snakeCase } = require( "snake-case");
 
 const pool = new pg.Pool({
   user: process.env.DB_USERNAME,
@@ -10,7 +10,7 @@ const pool = new pg.Pool({
 });
 
 // TODO: use transaction when appropriate
-export default {
+module.exports = {
   connect: () =>
     pool
       .connect()
@@ -446,5 +446,48 @@ export default {
       res?.map((r) => Number.parseInt(r.sensor_output_id)),
       err,
     ]);
+  },
+  getDeviceSensorsWithOutputAsTree: async function (deviceId) {
+    const [rawData, rawDataErr] = await this.queryAll(
+      `select 
+        so.sensor_id, s.name as sensor_name, s.type as sensor_type, 
+        so.id as output_id, so.name as output_name,
+        ds.pin,
+        (dso.device_id is not null) as active
+      from 
+        sensors s 
+        left join sensor_outputs so ON s.id = so.sensor_id
+        left outer join device_sensors ds ON ds.sensor_id = so.sensor_id and ds.device_id = $1
+        left outer join device_sensor_outputs dso ON dso.sensor_output_id = so.id and dso.device_id = $1
+      `,
+      [deviceId],
+    );
+
+    if (rawDataErr) {
+      return [null, rawDataErr];
+    }
+
+    const result = {};
+
+    for (const record of rawData) {
+      if (!result[record.sensor_id]) {
+        result[record.sensor_id] = {
+          id: Number.parseInt(record.sensor_id),
+          name: record.sensor_name,
+          type: record.sensor_type,
+          pin: Number.parseInt(record.pin),
+          active: record.pin !== null,
+          outputs: [],
+        };
+      }
+
+      result[record.sensor_id].outputs.push({
+        id: Number.parseInt(record.output_id),
+        name: record.output_name,
+        active: record.active,
+      });
+    }
+
+    return [Object.values(result), null];
   },
 };
