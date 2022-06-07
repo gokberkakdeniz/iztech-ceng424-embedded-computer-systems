@@ -31,3 +31,19 @@ export const ActionBody = ss.object({
     return propMap[parent.branch[0].type] || ss.never();
   }),
 });
+
+export const DeviceSensorsBody = ss.array(
+  ss.type({
+    id: ss.number(),
+    pin: ss.dynamic((value, parent) => {
+      return parent.branch[1].active ? ss.number() : ss.nullable(ss.number());
+    }),
+    active: ss.boolean(),
+    outputs: ss.array(
+      ss.type({
+        id: ss.number(),
+        active: ss.boolean(),
+      }),
+    ),
+  }),
+);

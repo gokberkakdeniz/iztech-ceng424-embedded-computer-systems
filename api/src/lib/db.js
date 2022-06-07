@@ -11,6 +11,11 @@ const pool = new pg.Pool({
 
 // TODO: use transaction when appropriate
 export default {
+  connect: () =>
+    pool
+      .connect()
+      .then((c) => [c, null])
+      .catch((e) => [null, e]),
   query: (text, params, client = null) => (client ?? pool).query(text, params),
   // Helpers
   queryAll: (text, params, client = null) =>
