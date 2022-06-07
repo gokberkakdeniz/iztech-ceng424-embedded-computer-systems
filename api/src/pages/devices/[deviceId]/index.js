@@ -147,13 +147,18 @@ function DevicePage() {
           console.log(data);
 
           if (checkStatusInfos.includes(data.data)) {
-            toast(checkStatusMessages[data.data]);
+            toast.loading(checkStatusMessages[data.data], {
+              id: "checkStatus",
+            });
           } else if (data.data === "done") {
-            toast.success(checkStatusMessages[data.data]);
+            toast.success(checkStatusMessages[data.data], {
+              id: "checkStatus",
+            });
           } else {
             toast.error(
               checkStatusMessages[data.data] ||
                 "Unknown status returned from the API.",
+              { id: "checkStatus" },
             );
           }
 
@@ -166,14 +171,18 @@ function DevicePage() {
         })
         .catch((e) => {
           clearInterval(intervalId);
-          toast.error("An error occured while checking status.");
+          toast.error("An error occured while checking status.", {
+            id: "checkStatus",
+          });
           console.log(e);
         })
         .finally(() => {
           counter++;
 
           if (counter > 100) {
-            toast.error("Checking is cancelled due to timeout.");
+            toast.error("Checking is cancelled due to timeout.", {
+              id: "checkStatus",
+            });
 
             clearInterval(intervalId);
           }
