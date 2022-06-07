@@ -2,8 +2,6 @@ const { actionRunner } = require("./action");
 const db = require("./db");
 const logger = require("./logger");
 
-console.log("CREATED_SENSOR");
-
 class UpdateSensorsDictionary {
   constructor() {
     this.dict = {};
@@ -41,10 +39,14 @@ class UpdateSensorsDictionary {
           }
 
           for (const sensor of sensors) {
-            for (const output of sensor.outputs) {
-              sensorsStatusTable[
-                `${sensor.name}_${output.name}`.toLowerCase()
-              ] = false;
+            if (sensor.active) {
+              for (const output of sensor.outputs) {
+                if (output.active) {
+                  sensorsStatusTable[
+                    `${sensor.name}_${output.name}`.toLowerCase()
+                  ] = false;
+                }
+              }
             }
           }
 

@@ -18,7 +18,7 @@ async function getUpdateSensorsStatus(req, res) {
   }
 
   try {
-    const { status } = fetch(
+    const { status } = await fetch(
       `http://localhost:${process.env.INTERNAL_PORT}/update-sensors-status/${req.query.deviceId}`,
       {
         method: "GET",

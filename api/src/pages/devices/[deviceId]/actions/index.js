@@ -19,7 +19,6 @@ function ActionsPage() {
 
   const handleDelete = useCallback(
     async (event) => {
-      console.log(event.target.dataset);
       const actionId = event.target.dataset.actionId;
 
       if (confirm("Do you want to delete this action?")) {

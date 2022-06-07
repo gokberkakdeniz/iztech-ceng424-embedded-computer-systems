@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Button from "../../../components/button";
 import ErrorComponent from "../../../components/error";
 import Loading from "../../../components/loading";
@@ -11,29 +11,28 @@ import Select from "../../../components/select";
 import { withPrivateWrapper } from "../../../components/withPrivateWrapper";
 import fetchJson from "../../../lib/fetchJson";
 
+const supportedSensors = [
+  {
+    name: "DHT",
+    description:
+      "The DHT sensors are made of two parts, a capacitive humidity sensor and a thermistor. It is used for measuring Temperature, Humidity and heatIndex data. and It looks like this.",
+    image:
+      "https://image.robotistan.com/dht11-isi-ve-nem-sensoru-kart-14197-17-O.jpg",
+  },
+  {
+    name: "LDR",
+    description:
+      "LDR (Light Dependent Resistor) is a component that has a resistance that changes with the light intensity. This allows them to be used in sensing light. It measures light level and outputs as voltage level. It looks like this.",
+    image: "https://5.imimg.com/data5/DE/KD/MY-25117786/ldr-sensor-500x500.jpg",
+  },
+];
+
 function AddDevicePage() {
   const { query } = useRouter();
   const [sensorsData, setSensorsData] = useState([]);
   const [error, setError] = useState();
   const [sensor, setSensor] = useState();
   const [sensorInfo, setSensorInfo] = useState();
-
-  const supportedSensors = [
-    {
-      name: "DHT",
-      description:
-        "The DHT sensors are made of two parts, a capacitive humidity sensor and a thermistor. It is used for measuring Temperature, Humidity and heatIndex data. and It looks like this.",
-      image:
-        "https://image.robotistan.com/dht11-isi-ve-nem-sensoru-kart-14197-17-O.jpg",
-    },
-    {
-      name: "LDR",
-      description:
-        "LDR (Light Dependent Resistor) is a component that has a resistance that changes with the light intensity. This allows them to be used in sensing light. It measures light level and outputs as voltage level. It looks like this.",
-      image:
-        "https://5.imimg.com/data5/DE/KD/MY-25117786/ldr-sensor-500x500.jpg",
-    },
-  ];
 
   useEffect(() => {
     if (!query.deviceId) return;
@@ -48,62 +47,52 @@ function AddDevicePage() {
         .catch(setError);
     }
     fetchSensorData();
-  }, [query]);
-
-  const getAvailablePinList = (type) => {
-    if (type === "digital") {
-      let arr = [...Array(11).keys()];
-      let arr2 = sensorsData.map((sens) =>
-        sens.type === "digital" ? sens.pin : -1,
-      );
-      arr.filter((num) => arr2.includes(num));
-      return arr;
-    } else {
-      return [0];
-    }
-  };
+  }, [query.deviceId]);
 
   useEffect(() => {
     if (!sensor || sensor === "") return;
 
-    let newSensorInfo = {
+    const newSensorInfo = {
       ...(supportedSensors.find((s) => s.name === sensor) || {}),
       ...(sensorsData.find((s) => s.name === sensor) || {}),
     };
-    newSensorInfo = {
-      ...newSensorInfo,
-      availablePins: getAvailablePinList(newSensorInfo.type),
-    };
 
     setSensorInfo(newSensorInfo);
-  }, [sensor]);
+  }, [sensor, sensorsData]);
+
+  const availableSensors = useMemo(
+    () => sensorsData.filter((s) => !s.active),
+    [sensorsData],
+  );
 
   const handlePinChange = (sensorId, value) => {
-    const newState = sensorsData.map((s) => {
-      if (s.id === sensorId) {
-        return { ...s, pin: value };
-      }
-      return s;
-    });
-    setSensorsData(newState);
+    setSensorsData((sd) =>
+      sd.map((s) => {
+        if (s.id === sensorId) {
+          return { ...s, pin: value };
+        }
+        return s;
+      }),
+    );
   };
 
   const handleCheck = (sensorId, outputId) => {
-    const newState = sensorsData.map((s) => {
-      if (s.id === sensorId) {
-        return {
-          ...s,
-          outputs: s.outputs.map((o) => {
-            if (o.id === outputId) {
-              o.active = !o.active;
-            }
-            return o;
-          }),
-        };
-      }
-      return s;
-    });
-    setSensorsData(newState);
+    setSensorsData((sd) =>
+      sd.map((s) => {
+        if (s.id === sensorId) {
+          return {
+            ...s,
+            outputs: s.outputs.map((o) => {
+              if (o.id === outputId) {
+                o.active = !o.active;
+              }
+              return o;
+            }),
+          };
+        }
+        return s;
+      }),
+    );
   };
 
   if (error) {
@@ -125,11 +114,9 @@ function AddDevicePage() {
         onChange={setSensor}
         value={sensor}
       >
-        {sensorsData
-          .filter((sens) => !sens.active)
-          .map((data) => (
-            <Select.Option key={data.id} value={data.name} text={data.name} />
-          ))}
+        {availableSensors.map((data) => (
+          <Select.Option key={data.id} value={data.name} text={data.name} />
+        ))}
       </Select>
 
       {sensorInfo?.name && (
@@ -149,7 +136,8 @@ function AddDevicePage() {
               {sensorInfo.type === "digital" ? "D" : "A"}
             </span>
             <PinSelect
-              state={[sensorInfo.pin, handlePinChange]}
+              pin={sensorInfo.pin}
+              handlePinChange={handlePinChange}
               id={sensorInfo.id}
               pinList={sensorInfo.availablePins}
             />

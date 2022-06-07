@@ -3,8 +3,6 @@ const db = require("./db.js");
 const logger = require("./logger.js");
 const MailProvider = require("./mailer.js");
 
-console.log("CREATED_ACTION");
-
 class Action {
   constructor() {}
 

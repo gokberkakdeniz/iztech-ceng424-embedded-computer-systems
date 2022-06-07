@@ -37,7 +37,6 @@ const createMQTTClient = () => {
   });
 
   client.on("message", async function (topic, message) {
-    return;
     const [deviceId, ...rest] = topic.split("/");
     const deviceTopic = rest.join("_");
 
@@ -375,7 +374,6 @@ const createWebSocketServer = (server) => {
     });
 
     const callback = (name, value) => {
-      console.log({ x: "ws", name, value });
       ws.send(JSON.stringify({ name, value }));
     };
 

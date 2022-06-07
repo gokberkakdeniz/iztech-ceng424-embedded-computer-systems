@@ -1,4 +1,4 @@
-import { PlusIcon, TrashIcon } from "@heroicons/react/solid";
+import { PlusCircleIcon, PlusIcon, TrashIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -17,9 +17,7 @@ function DevicePage() {
   useEffect(() => {
     if (sensorsData.length === 0) return;
 
-    setSensorsData((prevValue) =>
-      prevValue.sort((a, _) => a.type === "digital"),
-    );
+    setSensorsData((prevValue) => prevValue.sort((a) => a.type === "digital"));
   }, [sensorsData]);
 
   useEffect(() => {
@@ -38,9 +36,11 @@ function DevicePage() {
   }, [query]);
 
   const activeSensors = useMemo(
-    () => sensorsData.filter((s) => s.active),
+    () => sensorsData.filter((s) => s.active || s.__isTempDelete),
     [sensorsData],
   );
+
+  console.log(sensorsData);
 
   const handleCheck = (event) => {
     const sensorId = Number.parseInt(event.target.dataset.sensorId);
@@ -80,26 +80,35 @@ function DevicePage() {
     [setSensorsData],
   );
 
-  const handleRemoveSensor = useCallback(
+  const handleToggleSensor = useCallback(
     (event) => {
       const sensorId = Number.parseInt(event.target.dataset.sensorId);
+      const sensorActive = event.target.dataset.sensorActive === "true";
 
-      if (window.confirm("Are you sure you want to delete this sensor?")) {
-        setSensorsData((sd) =>
-          sd.map((s) => {
-            if (s.id === sensorId) {
-              return { ...s, active: false };
+      setSensorsData((sd) =>
+        sd.map((s) => {
+          if (s.id === sensorId) {
+            const sn = { ...s, active: !sensorActive, __isTempDelete: true };
+
+            if (!sensorActive) {
+              delete sn.__isTempDelete;
             }
-            return s;
-          }),
-        );
-      }
+
+            return sn;
+          }
+          return s;
+        }),
+      );
     },
     [setSensorsData],
   );
 
-  const handleSaveStatus = useCallback(() => {
+  useEffect(() => {
+    if (!window.location.href.includes("?checkStatus=1") || !query.deviceId)
+      return;
+
     let intervalId = null;
+    let counter = 0;
     const terminalStates = [
       "restart_failed",
       "sensors_fetch_failed",
@@ -117,17 +126,28 @@ function DevicePage() {
       })
         .then((res) => res.json())
         .then((data) => {
+          if (data.error) throw data;
           console.log(data);
 
-          if (terminalStates.includes(data.status)) {
+          if (
+            terminalStates.includes(data.data) ||
+            data?.data?.startsWith?.("check_failed")
+          ) {
             clearInterval(intervalId);
           }
         })
         .catch((e) => {
           clearInterval(intervalId);
           console.log(e);
+        })
+        .finally(() => {
+          counter++;
+
+          if (counter > 100) {
+            clearInterval(intervalId);
+          }
         });
-    }, 250);
+    }, 1500);
   }, [query.deviceId]);
 
   const handleSave = useCallback(() => {
@@ -140,13 +160,15 @@ function DevicePage() {
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data.error === false) return window.location.reload();
+        if (data.error === false) {
+          window.location.href =
+            "/devices/" + query.deviceId + "?checkStatus=1";
+          return;
+        }
 
         console.log(data);
-
-        handleSaveStatus();
       });
-  }, [sensorsData, query.deviceId, handleSaveStatus]);
+  }, [sensorsData, query.deviceId]);
 
   if (error) {
     return <ErrorComponent description={error.message || "Unknown error."} />;
@@ -166,7 +188,9 @@ function DevicePage() {
       {activeSensors.map((data) => (
         <div key={data.id} className="bg-gray-700 p-2 rounded">
           <div className="flex flex-row items-center justify-between">
-            <h2>{data.name} Sensor</h2>
+            <h2 className={data.__isTempDelete ? " line-through" : ""}>
+              {data.name} Sensor
+            </h2>
             <div className="flex flex-row items-center space-x-2">
               <b className="mr-0.5">PIN:</b>{" "}
               <PinSelect
@@ -179,9 +203,15 @@ function DevicePage() {
               <button
                 type="button"
                 data-sensor-id={data.id}
-                onClick={handleRemoveSensor}
+                data-sensor-active={data.active}
+                onClick={handleToggleSensor}
+                className="w-6"
               >
-                <TrashIcon className="w-6 mr-2 text-rose-700 hover:bg-gray-500 hover:rounded-full active:text-gray-400" />
+                {data.active ? (
+                  <TrashIcon className="w-6 mr-2 text-rose-700 hover:bg-gray-500 hover:rounded-full active:text-gray-400 pointer-events-none" />
+                ) : (
+                  <PlusCircleIcon className="w-6 mr-2 text-green-700 hover:bg-gray-500 hover:rounded-full active:text-gray-400 pointer-events-none" />
+                )}
               </button>
             </div>
           </div>
@@ -208,7 +238,7 @@ function DevicePage() {
         </div>
       ))}
       <div className="flex flex-row justify-end">
-        <Link href={`/devices/${query.deviceId}/addDevice`} passHref>
+        <Link href={`/devices/${query.deviceId}/addSensor`} passHref>
           <Button
             as={"a"}
             className="w-24 flex flex-row items-center justify-center"
