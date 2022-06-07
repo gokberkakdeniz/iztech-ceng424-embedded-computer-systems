@@ -1,18 +1,18 @@
-import "dotenv/config.js";
+require("dotenv").config();
 
-import Express from "express";
-import Next from "next";
-import { json } from "body-parser";
-import { connect } from "mqtt";
-import { ironSession } from "iron-session/express";
-import { unsealData } from "iron-session";
-import { WebSocketServer } from "ws";
-import cookie from "cookie";
-import { actionRunner, ActionModel } from "./lib/action.js";
-import logger from "./lib/logger.js";
-import db from "./lib/db.js";
-import { sessionOptions } from "./lib/session.js";
-import AsyncLock from "async-lock";
+const Express = require("express");
+const Next = require("next");
+const { json } = require("body-parser");
+const { connect } = require("mqtt");
+const { ironSession } = require("iron-session/express");
+const { unsealData } = require("iron-session");
+const { WebSocketServer } = require("ws");
+const cookie = require("cookie");
+const { actionRunner, ActionModel } = require("./lib/action.js");
+const logger = require("./lib/logger.js");
+const db = require("./lib/db.js");
+const { sessionOptions } = require("./lib/session.js");
+const AsyncLock = require("async-lock");
 
 const dev = process.env.NODE_ENV !== "production";
 const port = process.env.PORT || 8001;
