@@ -396,6 +396,21 @@ module.exports = {
       [deviceId, lastReset > time ? lastReset : time],
     ).then(([res, err]) => [res?.count, err]);
   },
+  getDeviceErrorCountBySensors: async function (deviceId) {
+    const time = new Date();
+    time.setMinutes(time.getMinutes() - 1);
+
+    const [lastReset, lastResetError] = await this.getLastDeviceReset(deviceId);
+
+    if (lastResetError) {
+      return [null, lastResetError];
+    }
+
+    return this.queryAll(
+      'SELECT name, count(*) FROM sensor_errors WHERE "device_id" = $1 and "time" > $2 group by name',
+      [deviceId, lastReset > time ? lastReset : time],
+    );
+  },
   getAllSensorErrors: function (deviceId, limit = 1000) {
     return this.queryAll(
       `SELECT "time", "name" FROM sensor_errors WHERE "device_id" = $1 ORDER BY "time" DESC LIMIT ${Number.parseInt(

@@ -33,7 +33,7 @@ const checkStatusTerminalStates = [
 const checkStatusInfos = ["restarting", "started", "checking"];
 
 function DevicePage() {
-  const { query } = useRouter();
+  const { query, push } = useRouter();
   const [sensorsData, setSensorsData] = useState([]);
   const [error, setError] = useState();
 
@@ -154,6 +154,13 @@ function DevicePage() {
             toast.success(checkStatusMessages[data.data], {
               id: "checkStatus",
             });
+            push("/devices/" + query.deviceId + "/live");
+          } else if (data?.data?.startsWith?.("check_failed")) {
+            toast.error(
+              checkStatusMessages[data.data] ||
+                "Check failed: " + data.data.split("|").slice(1).join(", "),
+              { id: "checkStatus" },
+            );
           } else {
             toast.error(
               checkStatusMessages[data.data] ||
@@ -188,7 +195,7 @@ function DevicePage() {
           }
         });
     }, 1500);
-  }, [query.deviceId]);
+  }, [query.deviceId, push]);
 
   const handleSave = useCallback(() => {
     fetch(`/api/devices/${query.deviceId}/sensors`, {
@@ -290,7 +297,7 @@ function DevicePage() {
           Save
         </Button>
       </div>
-      <pre>{JSON.stringify(sensorsData, null, 2)}</pre>
+      {/* <pre>{JSON.stringify(sensorsData, null, 2)}</pre> */}
     </div>
   );
 }

@@ -59,9 +59,9 @@ const createMQTTClient = () => {
               error: sensorErrorErr,
             });
 
-          const [errCount, errCountError] = await db.getDeviceErrorCount(
-            deviceId,
-          );
+          const [errCount, errCountError] =
+            await db.getDeviceErrorCountBySensors(deviceId);
+
           if (errCountError)
             return logger.error({
               name: "mqtt_onmessage_getDeviceErrorCountError",
@@ -74,7 +74,7 @@ const createMQTTClient = () => {
             record: { deviceId, errCount },
           });
 
-          if (errCount > 10) {
+          if (errCount.some((se) => se.count > 10)) {
             logger.info({
               name: "mqtt_onmessage_resettingDevice__toMuchError",
               record: { deviceId, errCount },
@@ -339,7 +339,7 @@ const createInternalServer = (mqttClient) => {
 
 const createServer = () => {
   const app = Express();
-
+  app.use(Express.static("public"));
   app.use(json());
   app.use(ironSession(sessionOptions));
 

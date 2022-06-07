@@ -104,14 +104,19 @@ static void sendDHTSensor(MQTTManager* mqttManager) {
     }
   }
 
-  if (activeSensorOutputs[SENSORS_DHT_HEAT_INDEX] && !isnan(h) && !isnan(t)) {
-    float hic = dht->computeHeatIndex(t, h, false);
-    
-    if (isnan(hic)) {
+  if (activeSensorOutputs[SENSORS_DHT_HEAT_INDEX]) {
+    if (isnan(h) || isnan(t)) {
       Serial.println("readDHTSensor :: failed to calculate heat index");
       mqttManager->publish("dht/heatIndex/error", "");
     } else {
-      mqttManager->publish("dht/heatIndex", hic);
+      float hic = dht->computeHeatIndex(t, h, false);
+    
+      if (isnan(hic)) {
+        Serial.println("readDHTSensor :: failed to calculate heat index");
+        mqttManager->publish("dht/heatIndex/error", "");
+      } else {
+        mqttManager->publish("dht/heatIndex", hic);
+      }
     }
   }
 }

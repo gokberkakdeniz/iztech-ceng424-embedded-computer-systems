@@ -1,5 +1,4 @@
 /* eslint-disable @next/next/no-img-element */
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Button from "../../../components/button";
@@ -17,19 +16,22 @@ const supportedSensors = [
     name: "DHT",
     description:
       "The DHT sensors are made of two parts, a capacitive humidity sensor and a thermistor. It is used for measuring Temperature, Humidity and heatIndex data. and It looks like this.",
-    image:
-      "https://image.robotistan.com/dht11-isi-ve-nem-sensoru-kart-14197-17-O.jpg",
+    image: "/images/dht1.jpg",
+    description2: "Here is how to setup the board:",
+    image2: "/images/dht2.png",
   },
   {
     name: "LDR",
     description:
       "LDR (Light Dependent Resistor) is a component that has a resistance that changes with the light intensity. This allows them to be used in sensing light. It measures light level and outputs as voltage level. It looks like this.",
-    image: "https://5.imimg.com/data5/DE/KD/MY-25117786/ldr-sensor-500x500.jpg",
+    image: "/images/ldr1.jpg",
+    description2: "Here is how to setup the board:",
+    image2: "/images/ldr2.png",
   },
 ];
 
 function AddDevicePage() {
-  const { query } = useRouter();
+  const { query, push } = useRouter();
   const [sensorsData, setSensorsData] = useState([]);
   const [error, setError] = useState();
   const [sensor, setSensor] = useState();
@@ -61,10 +63,7 @@ function AddDevicePage() {
     setSensorInfo(newSensorInfo);
   }, [sensor, sensorsData]);
 
-  const availableSensors = useMemo(
-    () => sensorsData.filter((s) => !s.active),
-    [sensorsData],
-  );
+  const availableSensors = useMemo(() => sensorsData, [sensorsData]);
 
   const handlePinChange = useCallback(
     (sensorId, value) => {
@@ -121,15 +120,14 @@ function AddDevicePage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.error === false) {
-          window.location.href =
-            "/devices/" + query.deviceId + "?checkStatus=1";
+          push("/devices/" + query.deviceId + "?checkStatus=1");
         } else {
           toast.error(data.message ?? "Unknown error occured.");
         }
 
         console.log(data);
       });
-  }, [sensorsData, query.deviceId]);
+  }, [sensorsData, query.deviceId, push]);
 
   if (error) {
     return <ErrorComponent description={error.message || "Unknown error."} />;
@@ -163,6 +161,13 @@ function AddDevicePage() {
             alt="Sensor Image"
             width={240}
             height={240}
+            className="self-center"
+          />
+          <div>{sensorInfo.description2}</div>
+          <img
+            src={sensorInfo.image2}
+            alt="Sensor Image 2"
+            width={400}
             className="self-center"
           />
           <div className="flex flex-row items-center">
