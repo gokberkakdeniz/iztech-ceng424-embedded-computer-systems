@@ -1,6 +1,6 @@
-import db from "../../../../lib/db";
-import logger from "../../../../lib/logger";
-import { DeviceSensorsBody } from "../../../../lib/validation";
+import db from "../../../../../lib/db";
+import logger from "../../../../../lib/logger";
+import { DeviceSensorsBody } from "../../../../../lib/validation";
 import * as ss from "superstruct";
 
 async function getDeviceSensors(req, res) {
@@ -19,48 +19,16 @@ async function getDeviceSensors(req, res) {
     return res.send({ error: true, message: "not found" });
   }
 
-  const [rawData, rawDataErr] = await db.queryAll(
-    `select 
-      so.sensor_id, s.name as sensor_name, s.type as sensor_type, 
-      so.id as output_id, so.name as output_name,
-      ds.pin,
-      (dso.device_id is not null) as active
-    from 
-      sensors s 
-      left join sensor_outputs so ON s.id = so.sensor_id
-      left outer join device_sensors ds ON ds.sensor_id = so.sensor_id and ds.device_id = $1
-      left outer join device_sensor_outputs dso ON dso.sensor_output_id = so.id and dso.device_id = $1
-    `,
-    [req.query.deviceId],
+  const [data, dataErr] = await db.getDeviceSensorsWithOutputAsTree(
+    req.query.deviceId,
   );
 
-  if (rawDataErr) {
-    logger.error(rawDataErr);
-    return res.send({ error: true, message: "unknown error." });
+  if (dataErr) {
+    logger.error(dataErr);
+    return res.send({ error: true, message: "data error." });
   }
 
-  const result = {};
-
-  for (const record of rawData) {
-    if (!result[record.sensor_id]) {
-      result[record.sensor_id] = {
-        id: Number.parseInt(record.sensor_id),
-        name: record.sensor_name,
-        type: record.sensor_type,
-        pin: Number.parseInt(record.pin),
-        active: record.pin !== null,
-        outputs: [],
-      };
-    }
-
-    result[record.sensor_id].outputs.push({
-      id: Number.parseInt(record.output_id),
-      name: record.output_name,
-      active: record.active,
-    });
-  }
-
-  res.send({ error: false, data: Object.values(result) });
+  res.send({ error: false, data });
 }
 
 async function updateDeviceSensors(req, res) {
@@ -99,10 +67,9 @@ async function updateDeviceSensors(req, res) {
       "DELETE FROM device_sensor_outputs WHERE device_id = $1",
       [req.query.deviceId],
     );
-    await client.query(
-      "DELETE FROM device_sensors WHERE device_id = $1",
-      [req.query.deviceId],
-    );
+    await client.query("DELETE FROM device_sensors WHERE device_id = $1", [
+      req.query.deviceId,
+    ]);
     const activeSensors = body.filter((s) => s.active);
     const activeSensorValues = activeSensors.map((s) => [s.id, s.pin]);
     const activeSensorOutputValues = activeSensors.flatMap((s) =>
@@ -139,6 +106,17 @@ async function updateDeviceSensors(req, res) {
   if (!success) {
     return res.send({ error: true, message: "transaction failed" });
   }
+
+  fetch(
+    `http://localhost:${process.env.INTERNAL_PORT}/update-sensors-status/${req.query.deviceId}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ status: "restarting" }),
+    },
+  ).catch(console.error);
 
   return getDeviceSensors(req, res);
 }

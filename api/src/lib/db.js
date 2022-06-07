@@ -1,5 +1,5 @@
 const pg = require("pg");
-const { snakeCase } = require( "snake-case");
+const { snakeCase } = require("snake-case");
 
 const pool = new pg.Pool({
   user: process.env.DB_USERNAME,

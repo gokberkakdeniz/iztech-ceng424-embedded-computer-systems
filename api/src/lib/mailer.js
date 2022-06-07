@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 
- class MailProvider {
+class MailProvider {
   constructor() {
     this.transporter = nodemailer.createTransport({
       host: "smtp-mail.outlook.com",

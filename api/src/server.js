@@ -9,6 +9,7 @@ const { unsealData } = require("iron-session");
 const { WebSocketServer } = require("ws");
 const cookie = require("cookie");
 const { actionRunner, ActionModel } = require("./lib/action.js");
+const updateSensorsDictionary = require("./lib/sensor.js");
 const logger = require("./lib/logger.js");
 const db = require("./lib/db.js");
 const { sessionOptions } = require("./lib/session.js");
@@ -113,6 +114,17 @@ const createMQTTClient = () => {
         record: { deviceId },
       });
 
+      await fetch(
+        `http://localhost:${process.env.INTERNAL_PORT}/update-sensors-status/${deviceId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: "started" }),
+        },
+      ).catch(console.error);
+
       const [
         [deviceSensors, deviceSensorErr],
         [deviceSensorOutputs, deviceSensorOutputsErr],
@@ -122,6 +134,17 @@ const createMQTTClient = () => {
       ]);
 
       if (deviceSensorOutputsErr || deviceSensorErr) {
+        fetch(
+          `http://localhost:${process.env.INTERNAL_PORT}/update-sensors-status/${deviceId}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ status: "sensors_fetch_failed" }),
+          },
+        ).catch(console.error);
+
         // TODO: think what should we do?
         return logger.error({
           name: "mqtt_onmessage_start_deviceSensorOutputsErr",
@@ -144,7 +167,31 @@ const createMQTTClient = () => {
         record: { deviceId, message: buffer },
       });
 
-      client.publish(`${deviceId}/cmd/sensors`, buffer);
+      client.publish(`${deviceId}/cmd/sensors`, buffer, (pubErr) => {
+        if (pubErr) {
+          fetch(
+            `http://localhost:${process.env.INTERNAL_PORT}/update-sensors-status/${deviceId}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ status: "sensors_publish_failed" }),
+            },
+          ).catch(console.error);
+        } else {
+          fetch(
+            `http://localhost:${process.env.INTERNAL_PORT}/update-sensors-status/${deviceId}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ status: "checking" }),
+            },
+          ).catch(console.error);
+        }
+      });
     } else if (
       deviceTopic.startsWith("dev_") ||
       deviceTopic.startsWith("cmd_")
@@ -201,7 +248,7 @@ const loadActions = () =>
     if (error) throw error;
   });
 
-const createInternalServer = () => {
+const createInternalServer = (mqttClient) => {
   const app = Express();
 
   app.use(json());
@@ -238,6 +285,46 @@ const createInternalServer = () => {
     actionRunner.unregister(model);
 
     res.send({ data: model });
+  });
+
+  app.get("/update-sensors-status", (req, res) => {
+    res.send(updateSensorsDictionary);
+  });
+
+  app.get("/update-sensors-status/:deviceId", (req, res) => {
+    res.send({
+      status: updateSensorsDictionary.get(req.params.deviceId),
+    });
+  });
+
+  app.post("/update-sensors-status/:deviceId", (req, res) => {
+    if (req.body.status === updateSensorsDictionary.get(req.params.deviceId)) {
+      res.send({
+        status: updateSensorsDictionary.get(req.params.deviceId),
+      });
+
+      return;
+    }
+
+    updateSensorsDictionary.set(req.params.deviceId, req.body.status);
+
+    if (req.body.status === "restarting") {
+      mqttClient.publish(`${req.params.deviceId}/cmd/reset`, "", (pubErr) => {
+        if (pubErr) {
+          updateSensorsDictionary.set(req.params.deviceId, "restart_failed");
+
+          return logger.error({
+            name: "mqtt_onmessage_publishResetFail",
+            record: { deviceId: req.params.deviceId },
+            error: pubErr,
+          });
+        }
+      });
+    }
+
+    return res.send({
+      status: updateSensorsDictionary.get(req.params.deviceId),
+    });
   });
 
   return app.listen(intervalPort, (err) => {
@@ -287,6 +374,7 @@ const createWebSocketServer = (server) => {
     });
 
     const callback = (name, value) => {
+      console.log({ x: "ws", name, value });
       ws.send(JSON.stringify({ name, value }));
     };
 
@@ -338,11 +426,9 @@ const createWebSocketServer = (server) => {
 };
 
 next.prepare().then(async () => {
-  createInternalServer();
-
   const server = createServer();
   createWebSocketServer(server);
 
   await loadActions();
-  createMQTTClient();
+  createInternalServer(createMQTTClient());
 });

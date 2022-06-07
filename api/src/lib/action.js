@@ -1,7 +1,9 @@
 const { compileExpression } = require("filtrex");
-const db  = require( "./db.js");
-const logger  = require( "./logger.js");
+const db = require("./db.js");
+const logger = require("./logger.js");
 const MailProvider = require("./mailer.js");
+
+console.log("CREATED_ACTION");
 
 class Action {
   constructor() {}
@@ -246,15 +248,16 @@ class ActionRunner {
     const actions = this.getActions(deviceId);
     const values = this.getValues(deviceId);
 
-    (this.callbacks.update[deviceId] ??= []).forEach((cb) =>
-      {
-        console.log({
-          "name": "actupdate",
-          cb, sensorName, sensorValue
-        });
+    (this.callbacks.update[deviceId] ??= []).forEach((cb) => {
+      try {
         cb(sensorName, sensorValue);
+      } catch (error) {
+        logger.error({
+          name: "actionRunner_callbackRunError",
+          error,
+        });
       }
-    );
+    });
 
     values[sensorName] = sensorValue;
 
@@ -277,8 +280,14 @@ class ActionRunner {
   }
 
   removeUpdateListener(deviceId, callback) {
-    const index = this.callbacks.update[deviceId].findIndex(callback);
-    if (index !== -1) this.callbacks.update[deviceId].splice(index);
+    const index = this.callbacks.update[deviceId].findIndex(
+      (cb) => cb === callback,
+    );
+    if (index !== -1) {
+      this.callbacks.update[deviceId].splice(index);
+      return true;
+    }
+    return false;
   }
 
   removeUpdateListeners(deviceId) {
@@ -296,5 +305,5 @@ module.exports = {
   WebHookAction,
   ActionModel,
   ActionRunner,
-  actionRunner
-}
+  actionRunner,
+};
