@@ -10,7 +10,6 @@ module.exports = {
         NODE_ENV: "development",
       },
       cwd: "/home/rodones/ceng424/api",
-      node_args: "-r @swc-node/register",
     },
   ],
 };
