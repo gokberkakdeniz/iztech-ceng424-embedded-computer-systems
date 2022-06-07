@@ -1,7 +1,20 @@
-import React from "react";
+import React, { useCallback } from "react";
 import Select from "./select";
 
-const PinSelect = ({ state, id, pinList = [], className = "" }) => {
+const pinListDefault = [];
+
+const PinSelect = ({
+  handlePinChange,
+  pin,
+  id,
+  pinList = pinListDefault,
+  className = "",
+}) => {
+  const onChange = useCallback(
+    (value) => handlePinChange(id, value),
+    [id, handlePinChange],
+  );
+
   if (pinList.length === 0) return <span>No available pins.</span>;
 
   return (
@@ -10,8 +23,8 @@ const PinSelect = ({ state, id, pinList = [], className = "" }) => {
       key={id}
       name="pin-select"
       required
-      onChange={(value) => state[1](id, value)}
-      value={state[0]}
+      onChange={onChange}
+      value={pin}
       className={className}
     >
       {pinList.map((data) => (

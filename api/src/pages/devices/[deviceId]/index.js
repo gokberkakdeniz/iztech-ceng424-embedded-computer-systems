@@ -1,7 +1,7 @@
 import { PlusIcon, TrashIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Button from "../../../components/button";
 import ErrorComponent from "../../../components/error";
 import Input from "../../../components/input";
@@ -9,6 +9,9 @@ import Loading from "../../../components/loading";
 import PinSelect from "../../../components/pinSelect";
 import { withPrivateWrapper } from "../../../components/withPrivateWrapper";
 import fetchJson from "../../../lib/fetchJson";
+
+const analogPins = [0];
+const digitalPins = [...Array(11).keys()];
 
 function DevicePage() {
   const { query } = useRouter();
@@ -31,56 +34,89 @@ function DevicePage() {
     fetchSensorData();
   }, [query]);
 
-  if (error) {
-    return <ErrorComponent description={error.message || "Unknown error."} />;
-  }
-
-  if (!error && sensorsData.length === 0) {
-    return <Loading />;
-  }
-
   const handleCheck = (sensorId, outputId) => {
     console.log(sensorId, outputId);
-    const newState = sensorsData.map((s) => {
-      if (s.id === sensorId) {
-        return {
-          ...s,
-          outputs: s.outputs.map((o) => {
-            if (o.id === outputId) {
-              o.active = !o.active;
-            }
-            return o;
-          }),
-        };
-      }
-      return s;
-    });
-    setSensorsData(newState);
-  };
-
-  const handlePinChange = (sensorId, value) => {
-    const newState = sensorsData.map((s) => {
-      if (s.id === sensorId) {
-        return { ...s, pin: value };
-      }
-      return s;
-    });
-    setSensorsData(newState);
-  };
-
-  const handleRemoveSensor = (sensorId) => {
-    if (window.confirm("Are you sure you want to delete this sensor?")) {
-      const newState = sensorsData.map((s) => {
+    setSensorsData((sd) =>
+      sd.map((s) => {
         if (s.id === sensorId) {
-          return { ...s, active: false };
+          return {
+            ...s,
+            outputs: s.outputs.map((o) => {
+              if (o.id === outputId) {
+                o.active = !o.active;
+              }
+              return o;
+            }),
+          };
         }
         return s;
-      });
-      setSensorsData(newState);
-    }
+      }),
+    );
   };
 
-  const handleSave = () => {
+  const handlePinChange = useCallback(
+    (sensorId, value) => {
+      setSensorsData((sd) =>
+        sd.map((s) => {
+          if (s.id === sensorId) {
+            return { ...s, pin: value };
+          }
+          return s;
+        }),
+      );
+    },
+    [setSensorsData],
+  );
+
+  const handleRemoveSensor = useCallback(
+    (sensorId) => {
+      if (window.confirm("Are you sure you want to delete this sensor?")) {
+        setSensorsData((sd) =>
+          sd.map((s) => {
+            if (s.id === sensorId) {
+              return { ...s, active: false };
+            }
+            return s;
+          }),
+        );
+      }
+    },
+    [setSensorsData],
+  );
+
+  const handleSaveStatus = useCallback(() => {
+    let intervalId = null;
+    const terminalStates = [
+      "restart_failed",
+      "sensors_fetch_failed",
+      "sensors_publish_failed",
+      "check_fetch_error",
+      "done",
+    ];
+
+    intervalId = setInterval(() => {
+      fetch(`/api/devices/${query.deviceId}/sensors/status`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log(data);
+
+          if (terminalStates.includes(data.status)) {
+            clearInterval(intervalId);
+          }
+        })
+        .catch((e) => {
+          clearInterval(intervalId);
+          console.log(e);
+        });
+    }, 250);
+  }, [query.deviceId]);
+
+  const handleSave = useCallback(() => {
     fetch(`/api/devices/${query.deviceId}/sensors`, {
       method: "POST",
       headers: {
@@ -90,10 +126,21 @@ function DevicePage() {
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data.error === false) window.location.reload();
+        if (data.error === false) return window.location.reload();
+
         console.log(data);
+
+        handleSaveStatus();
       });
-  };
+  }, [handleSaveStatus]);
+
+  if (error) {
+    return <ErrorComponent description={error.message || "Unknown error."} />;
+  }
+
+  if (!error && sensorsData.length === 0) {
+    return <Loading />;
+  }
 
   return (
     <div className="space-y-2">
@@ -107,9 +154,10 @@ function DevicePage() {
                 <b className="mr-0.5">PIN:</b>{" "}
                 {data.type === "digital" ? "D" : "A"}
                 <PinSelect
-                  state={[data.pin, handlePinChange]}
+                  pin={data.pin}
+                  handlePinChange={handlePinChange}
                   id={data.id}
-                  pinList={[...Array(11).keys()]}
+                  pinList={data.type === "digital" ? digitalPins : analogPins}
                   className="w-20"
                 />
                 {/* <Input
