@@ -22,19 +22,6 @@ function DevicePage() {
     );
   }, [sensorsData]);
 
-  const getAvailablePinList = (type) => {
-    if (type === "digital") {
-      let arr = [...Array(11).keys()];
-      let arr2 = sensorsData.map((sens) =>
-        sens.type === "digital" ? sens.pin : -1,
-      );
-      arr.filter((num) => arr2.includes(num));
-      return arr;
-    } else {
-      return [0];
-    }
-  };
-
   useEffect(() => {
     if (!query.deviceId) return;
 
@@ -42,10 +29,6 @@ function DevicePage() {
       fetchJson(`/api/devices/${query.deviceId}/sensors`)
         .then((data) => {
           if (data) {
-            data = data.map((d) => ({
-              ...d,
-              availablePins: getAvailablePinList(d.type),
-            }));
             setSensorsData(data);
           }
         })
@@ -99,7 +82,7 @@ function DevicePage() {
 
   const handleRemoveSensor = useCallback(
     (event) => {
-      const sensorId = event.target.dataset.sensorId;
+      const sensorId = Number.parseInt(event.target.dataset.sensorId);
 
       if (window.confirm("Are you sure you want to delete this sensor?")) {
         setSensorsData((sd) =>
@@ -186,12 +169,11 @@ function DevicePage() {
             <h2>{data.name} Sensor</h2>
             <div className="flex flex-row items-center space-x-2">
               <b className="mr-0.5">PIN:</b>{" "}
-              {data.type === "digital" ? "D" : "A"}
               <PinSelect
                 pin={data.pin}
+                pinType={data.type}
                 handlePinChange={handlePinChange}
                 id={data.id}
-                pinList={data.availablePins}
                 className="w-20"
               />
               <button

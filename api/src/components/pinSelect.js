@@ -1,21 +1,15 @@
+import clsx from "clsx";
 import React, { useCallback } from "react";
 import Select from "./select";
 
-const pinListDefault = [];
+const analogPins = [0];
+const digitalPins = [...Array(11).keys()];
 
-const PinSelect = ({
-  handlePinChange,
-  pin,
-  id,
-  pinList = pinListDefault,
-  className = "",
-}) => {
+const PinSelect = ({ handlePinChange, pin, pinType, id, className = "" }) => {
   const onChange = useCallback(
     (value) => handlePinChange(id, value),
     [id, handlePinChange],
   );
-
-  if (pinList.length === 0) return <span>No available pins.</span>;
 
   return (
     <Select
@@ -25,10 +19,14 @@ const PinSelect = ({
       required
       onChange={onChange}
       value={pin}
-      className={className}
+      className={clsx(className, "w-28")}
     >
-      {pinList.map((data) => (
-        <Select.Option key={data} value={data} text={`${data}`} />
+      {(pinType === "digital" ? digitalPins : analogPins).map((data) => (
+        <Select.Option
+          key={data}
+          value={data}
+          text={pinType[0].toUpperCase() + data}
+        />
       ))}
     </Select>
   );

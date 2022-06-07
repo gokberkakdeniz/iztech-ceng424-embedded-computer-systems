@@ -87,7 +87,7 @@ export default function Select({
             leaveTo="opacity-0"
             afterLeave={() => setQuery("")}
           >
-            <Combobox.Options className="absolute w-full border border-black rounded py-1 mt-1 overflow-auto text-base bg-gray-800 max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+            <Combobox.Options className="absolute z-50 w-full border border-black rounded py-1 mt-1 overflow-auto text-base bg-gray-800 max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
               {filteredOptions.length === 0 && query !== "" ? (
                 <div className="cursor-default select-none relative py-2 px-4 ">
                   Nothing found.
