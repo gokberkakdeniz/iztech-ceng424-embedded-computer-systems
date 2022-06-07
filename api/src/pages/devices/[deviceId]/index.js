@@ -1,7 +1,7 @@
 import { PlusIcon, TrashIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Button from "../../../components/button";
 import ErrorComponent from "../../../components/error";
 import Input from "../../../components/input";
@@ -33,6 +33,11 @@ function DevicePage() {
     }
     fetchSensorData();
   }, [query]);
+
+  const activeSensors = useMemo(
+    () => sensorsData.filter((s) => s.active),
+    [sensorsData],
+  );
 
   const handleCheck = (event) => {
     const sensorId = event.target.dataset.sensorId;
@@ -150,23 +155,26 @@ function DevicePage() {
 
   return (
     <div className="space-y-2">
-      {sensorsData
-        .filter((s) => s.active)
-        .map((data) => (
-          <div key={data.id} className="bg-gray-700 p-2 rounded">
-            <div className="flex flex-row items-center justify-between">
-              <h2>{data.name} Sensor</h2>
-              <div className="flex flex-row items-center space-x-2">
-                <b className="mr-0.5">PIN:</b>{" "}
-                {data.type === "digital" ? "D" : "A"}
-                <PinSelect
-                  pin={data.pin}
-                  handlePinChange={handlePinChange}
-                  id={data.id}
-                  pinList={data.type === "digital" ? digitalPins : analogPins}
-                  className="w-20"
-                />
-                {/* <Input
+      {activeSensors.length === 0 && (
+        <div className="py-24 text-center">
+          You don&apos;t have any sensor :(
+        </div>
+      )}
+      {activeSensors.map((data) => (
+        <div key={data.id} className="bg-gray-700 p-2 rounded">
+          <div className="flex flex-row items-center justify-between">
+            <h2>{data.name} Sensor</h2>
+            <div className="flex flex-row items-center space-x-2">
+              <b className="mr-0.5">PIN:</b>{" "}
+              {data.type === "digital" ? "D" : "A"}
+              <PinSelect
+                pin={data.pin}
+                handlePinChange={handlePinChange}
+                id={data.id}
+                pinList={data.type === "digital" ? digitalPins : analogPins}
+                className="w-20"
+              />
+              {/* <Input
                   type="text"
                   name="pin"
                   id="pin"
@@ -176,37 +184,37 @@ function DevicePage() {
                   onChange={(val) => handlePinChange(data.id, val.target.value)}
                   defaultValue={data.pin}
                 /> */}
-                <button
-                  type="button"
-                  data-sensor-id={data.id}
-                  onClick={handleRemoveSensor}
-                >
-                  <TrashIcon className="w-6 mr-2 text-rose-700 hover:bg-gray-500 hover:rounded-full active:text-gray-400" />
-                </button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              {data.outputs.map((output) => (
-                <div
-                  key={output.id}
-                  className="flex flex-row items-center space-x-2 bg-gray-500 p-2 rounded"
-                >
-                  <input
-                    id="default-checkbox"
-                    type="checkbox"
-                    data-sensor-id={data.id}
-                    data-output-id={output.id}
-                    onChange={handleCheck}
-                    value=""
-                    defaultChecked={output.active}
-                    className="w-5 h-5 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                  <span className="capitalize">{output.name}</span>
-                </div>
-              ))}
+              <button
+                type="button"
+                data-sensor-id={data.id}
+                onClick={handleRemoveSensor}
+              >
+                <TrashIcon className="w-6 mr-2 text-rose-700 hover:bg-gray-500 hover:rounded-full active:text-gray-400" />
+              </button>
             </div>
           </div>
-        ))}
+          <div className="space-y-2">
+            {data.outputs.map((output) => (
+              <div
+                key={output.id}
+                className="flex flex-row items-center space-x-2 bg-gray-500 p-2 rounded"
+              >
+                <input
+                  id="default-checkbox"
+                  type="checkbox"
+                  data-sensor-id={data.id}
+                  data-output-id={output.id}
+                  onChange={handleCheck}
+                  value=""
+                  defaultChecked={output.active}
+                  className="w-5 h-5 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <span className="capitalize">{output.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
       <div className="flex flex-row justify-end">
         <Link href={`/devices/${query.deviceId}/addDevice`} passHref>
           <Button
