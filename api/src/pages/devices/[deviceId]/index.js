@@ -4,19 +4,36 @@ import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Button from "../../../components/button";
 import ErrorComponent from "../../../components/error";
-import Input from "../../../components/input";
 import Loading from "../../../components/loading";
 import PinSelect from "../../../components/pinSelect";
 import { withPrivateWrapper } from "../../../components/withPrivateWrapper";
 import fetchJson from "../../../lib/fetchJson";
 
-const analogPins = [0];
-const digitalPins = [...Array(11).keys()];
-
 function DevicePage() {
   const { query } = useRouter();
   const [sensorsData, setSensorsData] = useState([]);
   const [error, setError] = useState();
+
+  useEffect(() => {
+    if (sensorsData.length === 0) return;
+
+    setSensorsData((prevValue) =>
+      prevValue.sort((a, _) => a.type === "digital"),
+    );
+  }, [sensorsData]);
+
+  const getAvailablePinList = (type) => {
+    if (type === "digital") {
+      let arr = [...Array(11).keys()];
+      let arr2 = sensorsData.map((sens) =>
+        sens.type === "digital" ? sens.pin : -1,
+      );
+      arr.filter((num) => arr2.includes(num));
+      return arr;
+    } else {
+      return [0];
+    }
+  };
 
   useEffect(() => {
     if (!query.deviceId) return;
@@ -25,7 +42,10 @@ function DevicePage() {
       fetchJson(`/api/devices/${query.deviceId}/sensors`)
         .then((data) => {
           if (data) {
-            console.log(data);
+            data = data.map((d) => ({
+              ...d,
+              availablePins: getAvailablePinList(d.type),
+            }));
             setSensorsData(data);
           }
         })
@@ -40,8 +60,8 @@ function DevicePage() {
   );
 
   const handleCheck = (event) => {
-    const sensorId = event.target.dataset.sensorId;
-    const outputId = event.target.dataset.outputId;
+    const sensorId = Number.parseInt(event.target.dataset.sensorId);
+    const outputId = Number.parseInt(event.target.dataset.outputId);
 
     console.log(sensorId, outputId);
 
@@ -67,7 +87,7 @@ function DevicePage() {
     (sensorId, value) => {
       setSensorsData((sd) =>
         sd.map((s) => {
-          if (s.id === sensorId) {
+          if (s.id === Number.parseInt(sensorId)) {
             return { ...s, pin: value };
           }
           return s;
@@ -171,19 +191,9 @@ function DevicePage() {
                 pin={data.pin}
                 handlePinChange={handlePinChange}
                 id={data.id}
-                pinList={data.type === "digital" ? digitalPins : analogPins}
+                pinList={data.availablePins}
                 className="w-20"
               />
-              {/* <Input
-                  type="text"
-                  name="pin"
-                  id="pin"
-                  className="w-8 mx-2 text-center"
-                  required
-                  autoComplete="off"
-                  onChange={(val) => handlePinChange(data.id, val.target.value)}
-                  defaultValue={data.pin}
-                /> */}
               <button
                 type="button"
                 data-sensor-id={data.id}

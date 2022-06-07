@@ -28,7 +28,7 @@ const PinSelect = ({
       className={className}
     >
       {pinList.map((data) => (
-        <Select.Option key={data} value={data} text={data} />
+        <Select.Option key={data} value={data} text={`${data}`} />
       ))}
     </Select>
   );

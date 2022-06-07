@@ -37,6 +37,7 @@ const createMQTTClient = () => {
   });
 
   client.on("message", async function (topic, message) {
+    return;
     const [deviceId, ...rest] = topic.split("/");
     const deviceTopic = rest.join("_");
 
