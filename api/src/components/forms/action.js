@@ -2,25 +2,10 @@ import { Popover } from "@headlessui/react";
 import Button from "../button";
 import Input from "../input";
 import Select from "../select";
-import {
-  QuestionMarkCircleIcon,
-  VariableIcon,
-  ChatIcon,
-} from "@heroicons/react/solid";
+import { VariableIcon, ChatIcon } from "@heroicons/react/solid";
 import { useCallback, useEffect, useRef, useState } from "react";
 import fetchJSON from "../../lib/fetchJson";
-
-const renderLabel = (text, htmlFor, description) => (
-  <label htmlFor={htmlFor} className="flex justify-center gap-1">
-    <b>{text}</b>
-
-    {description && (
-      <span title={description}>
-        <QuestionMarkCircleIcon className="h-full w-4" />
-      </span>
-    )}
-  </label>
-);
+import RenderLabel from "../RenderLabel";
 
 function TelegramActionForm({ data = {}, token = "" }) {
   const [polling, setPolling] = useState(false);
@@ -47,7 +32,7 @@ function TelegramActionForm({ data = {}, token = "" }) {
 
   return (
     <>
-      {renderLabel(
+      {RenderLabel(
         "Receiver Id",
         "prop__chat_id",
         "You should first send message to the bot.",
@@ -80,7 +65,7 @@ function TelegramActionForm({ data = {}, token = "" }) {
         </Button>
       </div>
 
-      {renderLabel("Message", "prop__message")}
+      {RenderLabel("Message", "prop__message")}
       <Input
         placeholder="Temperature is {dht_temperature}!"
         name="prop__message"
@@ -100,7 +85,7 @@ function TelegramActionForm({ data = {}, token = "" }) {
 function EmailActionForm({ data = {} }) {
   return (
     <>
-      {renderLabel("Receiver Email", "prop__to")}
+      {RenderLabel("Receiver Email", "prop__to")}
       <Input
         type="text"
         placeholder="some@mail.com"
@@ -112,7 +97,7 @@ function EmailActionForm({ data = {} }) {
         defaultValue={data.props?.to}
       />
 
-      {renderLabel("Subject", "prop__subject")}
+      {RenderLabel("Subject", "prop__subject")}
       <Input
         type="text"
         placeholder="Subject"
@@ -124,7 +109,7 @@ function EmailActionForm({ data = {} }) {
         defaultValue={data.props?.subject}
       />
 
-      {renderLabel("Message", "prop__message")}
+      {RenderLabel("Message", "prop__message")}
       <Input
         placeholder="Temperature is {dht_temperature}!"
         name="prop__message"
@@ -183,7 +168,7 @@ function ActionForm({
 
   return (
     <form className="text-center" onSubmit={onSubmit}>
-      {renderLabel("Name", "name")}
+      {RenderLabel("Name", "name")}
       <Input
         type="text"
         placeholder="My action name"
@@ -195,7 +180,7 @@ function ActionForm({
         defaultValue={data.name}
       />
 
-      {renderLabel(
+      {RenderLabel(
         "Condition",
         "condition",
         "You can use arithmetic operations, comparisons, boolean logic, and builtin functions like abs/ceil/floor/log/max/min/round/sqrt/random...",
@@ -239,7 +224,7 @@ function ActionForm({
         </Popover>
       </div>
 
-      {renderLabel(
+      {RenderLabel(
         "Wait for next run (seconds)",
         "waitFor",
         "If condition met a again, action won't be trigger for given threshold value.",
@@ -256,7 +241,7 @@ function ActionForm({
         defaultValue={data.wait_for ?? data.waitFor ?? 10}
       />
 
-      {renderLabel("Type", "type")}
+      {RenderLabel("Type", "type")}
       <Select
         id="type"
         name="type"

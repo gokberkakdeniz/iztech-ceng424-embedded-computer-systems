@@ -70,7 +70,7 @@ const colors = [
 function DeviceChartPage() {
   const { query } = useRouter();
   const { data, error } = useSWR(
-    `/api/devices/${query.deviceId}/values?order=asc&offset=1 days`,
+    `/api/devices/${query.deviceId}/values?order=asc&offset=2 days`,
   );
 
   const chartData = useMemo(() => {
@@ -97,11 +97,11 @@ function DeviceChartPage() {
           });
 
           while (timeValuesRaw[dataset.data.length] != bucket) {
-            console.log(
-              dataset.data.length,
-              timeValuesRaw[dataset.data.length],
-              bucket,
-            );
+            // console.log(
+            //   dataset.data.length,
+            //   timeValuesRaw[dataset.data.length],
+            //   bucket,
+            // );
             dataset.data.push(NaN);
           }
 
