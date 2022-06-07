@@ -5,7 +5,7 @@ import Select from "../select";
 import { VariableIcon, ChatIcon } from "@heroicons/react/solid";
 import { useCallback, useEffect, useRef, useState } from "react";
 import fetchJSON from "../../lib/fetchJson";
-import RenderLabel from "../RenderLabel";
+import RenderLabel from "../renderLabel";
 
 function TelegramActionForm({ data = {}, token = "" }) {
   const [polling, setPolling] = useState(false);
