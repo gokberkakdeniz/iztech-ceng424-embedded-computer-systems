@@ -34,8 +34,12 @@ function DevicePage() {
     fetchSensorData();
   }, [query]);
 
-  const handleCheck = (sensorId, outputId) => {
+  const handleCheck = (event) => {
+    const sensorId = event.target.dataset.sensorId;
+    const outputId = event.target.dataset.outputId;
+
     console.log(sensorId, outputId);
+
     setSensorsData((sd) =>
       sd.map((s) => {
         if (s.id === sensorId) {
@@ -69,7 +73,9 @@ function DevicePage() {
   );
 
   const handleRemoveSensor = useCallback(
-    (sensorId) => {
+    (event) => {
+      const sensorId = event.target.dataset.sensorId;
+
       if (window.confirm("Are you sure you want to delete this sensor?")) {
         setSensorsData((sd) =>
           sd.map((s) => {
@@ -132,7 +138,7 @@ function DevicePage() {
 
         handleSaveStatus();
       });
-  }, [handleSaveStatus]);
+  }, [sensorsData, query.deviceId, handleSaveStatus]);
 
   if (error) {
     return <ErrorComponent description={error.message || "Unknown error."} />;
@@ -172,7 +178,8 @@ function DevicePage() {
                 /> */}
                 <button
                   type="button"
-                  onClick={() => handleRemoveSensor(data.id)}
+                  data-sensor-id={data.id}
+                  onClick={handleRemoveSensor}
                 >
                   <TrashIcon className="w-6 mr-2 text-rose-700 hover:bg-gray-500 hover:rounded-full active:text-gray-400" />
                 </button>
@@ -187,7 +194,9 @@ function DevicePage() {
                   <input
                     id="default-checkbox"
                     type="checkbox"
-                    onChange={() => handleCheck(data.id, output.id)}
+                    data-sensor-id={data.id}
+                    data-output-id={output.id}
+                    onChange={handleCheck}
                     value=""
                     defaultChecked={output.active}
                     className="w-5 h-5 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
@@ -207,7 +216,7 @@ function DevicePage() {
             <PlusIcon className="h-full w-4 align-middle inline-block" /> Add
           </Button>
         </Link>
-        <Button onClick={() => handleSave()} className="w-24">
+        <Button onClick={handleSave} className="w-24">
           Save
         </Button>
       </div>
