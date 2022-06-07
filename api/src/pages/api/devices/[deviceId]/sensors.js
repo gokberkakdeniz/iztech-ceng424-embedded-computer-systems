@@ -140,7 +140,7 @@ async function updateDeviceSensors(req, res) {
     return res.send({ error: true, message: "transaction failed" });
   }
 
-  res.send({ error: false, data: true });
+  return getDeviceSensors(req, res);
 }
 
 export default async function deviceSensorsRoute(req, res) {
