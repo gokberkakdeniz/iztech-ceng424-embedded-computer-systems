@@ -63,7 +63,10 @@ function AddDevicePage() {
     setSensorInfo(newSensorInfo);
   }, [sensor, sensorsData]);
 
-  const availableSensors = useMemo(() => sensorsData, [sensorsData]);
+  const availableSensors = useMemo(
+    () => sensorsData.filter((s) => !s.active),
+    [sensorsData],
+  );
 
   const handlePinChange = useCallback(
     (sensorId, value) => {
