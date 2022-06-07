@@ -1,8 +1,12 @@
 import React from "react";
 import { QuestionMarkCircleIcon } from "@heroicons/react/solid";
+import clsx from "clsx";
 
-const RenderLabel = (text, htmlFor, description) => (
-  <label htmlFor={htmlFor} className="flex flex-row justify-center gap-x-0.5">
+const RenderLabel = (text, htmlFor, description, className = "") => (
+  <label
+    htmlFor={htmlFor}
+    className={clsx(className, "flex flex-row justify-center gap-x-0.5")}
+  >
     <b>{text}</b>
 
     {description && (

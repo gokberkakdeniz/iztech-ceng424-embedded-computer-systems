@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Button from "../../../components/button";
 import ErrorComponent from "../../../components/error";
 import Loading from "../../../components/loading";
@@ -10,6 +10,7 @@ import RenderLabel from "../../../components/renderLabel";
 import Select from "../../../components/select";
 import { withPrivateWrapper } from "../../../components/withPrivateWrapper";
 import fetchJson from "../../../lib/fetchJson";
+import { toast } from "react-hot-toast";
 
 const supportedSensors = [
   {
@@ -65,35 +66,70 @@ function AddDevicePage() {
     [sensorsData],
   );
 
-  const handlePinChange = (sensorId, value) => {
-    setSensorsData((sd) =>
-      sd.map((s) => {
-        if (s.id === sensorId) {
-          return { ...s, pin: value };
-        }
-        return s;
-      }),
-    );
-  };
+  const handlePinChange = useCallback(
+    (sensorId, value) => {
+      setSensorsData((sd) =>
+        sd.map((s) => {
+          if (s.id === sensorId) {
+            return { ...s, pin: value };
+          }
+          return s;
+        }),
+      );
+    },
+    [setSensorsData],
+  );
 
-  const handleCheck = (sensorId, outputId) => {
-    setSensorsData((sd) =>
-      sd.map((s) => {
-        if (s.id === sensorId) {
-          return {
-            ...s,
-            outputs: s.outputs.map((o) => {
-              if (o.id === outputId) {
-                o.active = !o.active;
-              }
-              return o;
-            }),
-          };
+  const handleCheck = useCallback(
+    (sensorId, outputId) => {
+      setSensorsData((sd) =>
+        sd.map((s) => {
+          if (s.id === sensorId) {
+            return {
+              ...s,
+              outputs: s.outputs.map((o) => {
+                if (o.id === outputId) {
+                  o.active = !o.active;
+                }
+                return o;
+              }),
+            };
+          }
+          return s;
+        }),
+      );
+    },
+    [setSensorsData],
+  );
+
+  const handleSave = useCallback(() => {
+    fetch(`/api/devices/${query.deviceId}/sensors`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(
+        sensorsData.map((s) => {
+          if (typeof s.pin === "number") {
+            return { ...s, active: true };
+          }
+
+          return s;
+        }),
+      ),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error === false) {
+          window.location.href =
+            "/devices/" + query.deviceId + "?checkStatus=1";
+        } else {
+          toast.error(data.message ?? "Unknown error occured.");
         }
-        return s;
-      }),
-    );
-  };
+
+        console.log(data);
+      });
+  }, [sensorsData, query.deviceId]);
 
   if (error) {
     return <ErrorComponent description={error.message || "Unknown error."} />;
@@ -130,13 +166,10 @@ function AddDevicePage() {
             className="self-center"
           />
           <div className="flex flex-row items-center">
-            {RenderLabel("Sensor input pin:", "input-pin")}
-
-            <span className="ml-4 mr-2">
-              {sensorInfo.type === "digital" ? "D" : "A"}
-            </span>
+            {RenderLabel("Sensor input pin:", "input-pin", null, "pr-4")}
             <PinSelect
               pin={sensorInfo.pin}
+              pinType={sensorInfo.type}
               handlePinChange={handlePinChange}
               id={sensorInfo.id}
               pinList={sensorInfo.availablePins}
@@ -170,11 +203,9 @@ function AddDevicePage() {
         </div>
       )}
       <div className="self-end mt-4">
-        <Link href={""} passHref>
-          <Button as={"a"} className="w-36">
-            Save
-          </Button>
-        </Link>
+        <Button className="w-36" onClick={handleSave}>
+          Save
+        </Button>
       </div>
       {/* <pre>{JSON.stringify(sensorsData, null, 2)}</pre> */}
     </div>

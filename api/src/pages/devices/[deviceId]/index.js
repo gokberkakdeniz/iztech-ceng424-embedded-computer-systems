@@ -2,12 +2,35 @@ import { PlusCircleIcon, PlusIcon, TrashIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import Button from "../../../components/button";
 import ErrorComponent from "../../../components/error";
 import Loading from "../../../components/loading";
 import PinSelect from "../../../components/pinSelect";
 import { withPrivateWrapper } from "../../../components/withPrivateWrapper";
 import fetchJson from "../../../lib/fetchJson";
+
+const checkStatusMessages = {
+  restarting: "The device is restarting...",
+  restart_failed: "The device could not be restarted.",
+  started: "The device is started.",
+  sensors_fetch_failed: "The sensors could not fetched from database.",
+  sensors_publish_failed: "The sensors data could not transmitted to device.",
+  checking: "Checking sensors...",
+  check_fetch_error:
+    "Checking failed, could not fetch sensors from database...",
+  done: "The configuration is done.",
+};
+
+const checkStatusTerminalStates = [
+  "restart_failed",
+  "sensors_fetch_failed",
+  "sensors_publish_failed",
+  "check_fetch_error",
+  "done",
+];
+
+const checkStatusInfos = ["restarting", "started", "checking"];
 
 function DevicePage() {
   const { query } = useRouter();
@@ -109,13 +132,6 @@ function DevicePage() {
 
     let intervalId = null;
     let counter = 0;
-    const terminalStates = [
-      "restart_failed",
-      "sensors_fetch_failed",
-      "sensors_publish_failed",
-      "check_fetch_error",
-      "done",
-    ];
 
     intervalId = setInterval(() => {
       fetch(`/api/devices/${query.deviceId}/sensors/status`, {
@@ -127,10 +143,22 @@ function DevicePage() {
         .then((res) => res.json())
         .then((data) => {
           if (data.error) throw data;
+
           console.log(data);
 
+          if (checkStatusInfos.includes(data.data)) {
+            toast(checkStatusMessages[data.data]);
+          } else if (data.data === "done") {
+            toast.success(checkStatusMessages[data.data]);
+          } else {
+            toast.error(
+              checkStatusMessages[data.data] ||
+                "Unknown status returned from the API.",
+            );
+          }
+
           if (
-            terminalStates.includes(data.data) ||
+            checkStatusTerminalStates.includes(data.data) ||
             data?.data?.startsWith?.("check_failed")
           ) {
             clearInterval(intervalId);
@@ -138,12 +166,15 @@ function DevicePage() {
         })
         .catch((e) => {
           clearInterval(intervalId);
+          toast.error("An error occured while checking status.");
           console.log(e);
         })
         .finally(() => {
           counter++;
 
           if (counter > 100) {
+            toast.error("Checking is cancelled due to timeout.");
+
             clearInterval(intervalId);
           }
         });
